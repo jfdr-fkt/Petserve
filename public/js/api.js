@@ -1,28 +1,31 @@
-// public/js/api.js — All server communication: fetch wrapper and data refresh.
-
-const toastElement = document.querySelector('#toast');
-
-async function api(route, method = 'GET', data) {
+import { escapeHTML } from './utils.js';
+export async function api(route, method = 'GET', data) {
   const response = await fetch(route, {
     method,
     headers: data === undefined ? {} : { 'Content-Type': 'application/json' },
     body: data === undefined ? undefined : JSON.stringify(data),
-    credentials: 'same-origin'
+    credentials: 'same-origin',
   });
   const body = await response.json();
-  if (!response.ok) throw new Error(body.error || 'Request failed.');
+  if (!response.ok) throw new Error(body.error || 'The request could not be completed.');
   return body;
 }
-
-function toast(message, error = false) {
-  toastElement.innerHTML = `${error ? '⚠️' : '✓'} &nbsp;<span>${escapeHTML(message)}</span>`;
-  toastElement.classList.toggle('error', error);
-  toastElement.classList.add('show');
-  clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => toastElement.classList.remove('show'), 3800);
+export async function uploadMedia(file, details) {
+  const response = await fetch(`/api/gallery?${new URLSearchParams(details)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': file.type },
+    body: file,
+    credentials: 'same-origin',
+  });
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error || 'The media could not be uploaded.');
+  return body;
 }
-
-async function refresh() {
-  state.data = await api('/api/bootstrap');
-  render();
+export function toast(message, error = false) {
+  const element = document.querySelector('#toast');
+  element.innerHTML = `<span>${error ? '!' : '✓'}</span> ${escapeHTML(message)}`;
+  element.classList.toggle('error', error);
+  element.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => element.classList.remove('show'), 4200);
 }

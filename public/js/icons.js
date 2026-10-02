@@ -1,5 +1,5 @@
 // public/js/icons.js — All SVG icon strings used in the UI.
-const icons = {
+export const icons = {
   brand: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-1.5 0-2.8 1.2-2.8 2.7 0 2.2 2.8 4.3 2.8 4.3s2.8-2.1 2.8-4.3C14.8 6.2 13.5 5 12 5z"/><path d="M7 9c-1.2 0-2.2.9-2.2 2 0 1.6 2.2 3.2 2.2 3.2s2.2-1.6 2.2-3.2c0-1.1-1-2-2.2-2z"/><path d="M17 9c-1.2 0-2.2.9-2.2 2 0 1.6 2.2 3.2 2.2 3.2s2.2-1.6 2.2-3.2c0-1.1-1-2-2.2-2z"/><path d="M12 14c-3.2 0-6 1.8-6 4 0 1.5 2.7 3 6 3s6-1.5 6-3c0-2.2-2.8-4-6-4z"/></svg>`,
 
   overview: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/></svg>`,
@@ -28,9 +28,9 @@ const icons = {
 
   sparkle: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>`,
 
-  card: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`
+  card: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`,
 };
 
-function serviceIcon(id) {
+export function serviceIcon(id) {
   return icons[id] || icons.sparkle;
 }

@@ -1,3 +1,6 @@
 data/db.json
 .DS_Store
 node_modules/
+artifacts/
+data/test-*/
+data/uploads/

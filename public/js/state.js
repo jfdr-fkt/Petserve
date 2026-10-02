@@ -1,14 +1,25 @@
-// public/js/state.js — Centralised application state.
-const state = {
+export const state = {
   data: null,
   view: 'overview',
   authMode: 'login',
-  selectedService: 'grooming',
-  selectedTimeSlot: '',
   filter: 'all',
-  paymentFor: null,
-  onlinePayFor: null,
-  selectedPetForHistory: null,
-  editingPetPhoto: '',
-  report: null
+  search: '',
+  selectedPet: '',
+  petTab: 'profile',
+  petSpecies: 'all',
+  dialog: null,
+  draft: {},
+  booking: { serviceId: 'grooming', petId: '', date: '', time: '', note: '' },
+  slots: [],
+  slotsLoading: false,
+  slotError: '',
+  scheduleDate: '',
+  report: null,
+  reportFrom: '',
+  reportTo: '',
+  notifications: false,
+  sidebarCollapsed: false,
+  mobileMenuOpen: false,
+  mediaFile: null,
 };
+export const isStaff = () => ['staff', 'admin'].includes(state.data?.user?.role);

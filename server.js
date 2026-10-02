@@ -11,21 +11,24 @@ async function createApp(options = {}) {
   const db = await seedDatabase(dbFile);
   const sessions = new Map();
   const persist = makePersist(db, dbFile);
-  const handler = createHandler(db, sessions, persist);
+  const uploadsDir = options.uploadsDir || path.join(path.dirname(dbFile), 'uploads');
+  const handler = createHandler(db, sessions, persist, uploadsDir);
   const server = http.createServer(handler);
   return { server, dbFile };
 }
 
 if (require.main === module) {
-  createApp().then(({ server }) => {
-    const port = Number(process.env.PORT) || 3000;
-    server.listen(port, '127.0.0.1', () =>
-      console.log(`PetServe running at http://127.0.0.1:${port}`)
-    );
-  }).catch(error => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+  createApp()
+    .then(({ server }) => {
+      const port = Number(process.env.PORT) || 3000;
+      server.listen(port, '127.0.0.1', () =>
+        console.log(`PetServe running at http://127.0.0.1:${port}`),
+      );
+    })
+    .catch((error) => {
+      console.error(error);
+      process.exitCode = 1;
+    });
 }
 
 module.exports = { createApp };

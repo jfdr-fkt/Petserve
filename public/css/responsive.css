@@ -1,0 +1,781 @@
+@media (min-width: 1600px) {
+  main {
+    padding: 40px 50px;
+  }
+}
+@media (max-width: 1200px) {
+  .app-shell {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+  .sidebar {
+    padding: 28px 15px 15px;
+  }
+  .topbar {
+    padding: 0 25px;
+  }
+  main {
+    padding: 28px 25px;
+  }
+  .stats-grid {
+    gap: 12px;
+  }
+  .stat-card {
+    padding: 17px 15px;
+  }
+  .stat-card .icon-tile {
+    width: 33px;
+    height: 33px;
+  }
+  .stat-card .icon-tile svg {
+    width: 16px;
+    height: 16px;
+  }
+  .pets-workspace {
+    grid-template-columns: 205px minmax(0, 1fr);
+    gap: 18px;
+  }
+  .pet-profile-heading {
+    gap: 12px;
+  }
+  .pet-profile-heading .actions {
+    width: 100%;
+    margin-top: 0;
+    justify-content: flex-end;
+  }
+  .pet-profile-heading {
+    padding-bottom: 18px;
+  }
+  .booking-layout {
+    grid-template-columns: minmax(0, 1fr) 245px;
+    gap: 18px;
+  }
+  .booking-summary {
+    padding: 22px;
+  }
+  .date-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .visit-date {
+    margin-right: 0;
+  }
+  .visit-row {
+    flex-wrap: wrap;
+    gap: 9px;
+    padding: 16px;
+  }
+  .visit-row .visit-info {
+    min-width: 100px;
+  }
+  .visit-date strong {
+    font-size: var(--text-xs);
+  }
+  .visit-row .status {
+    margin-left: auto;
+  }
+  .appointment-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .appointment-actions .actions {
+    align-self: flex-end;
+  }
+  .reports-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 950px) {
+  .app-shell {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .sidebar {
+    padding: 25px 12px 12px;
+  }
+  .sidebar > .brand {
+    margin-bottom: 32px;
+  }
+  .brand {
+    font-size: 22px;
+    gap: 8px;
+  }
+  .brand-mark {
+    width: 35px;
+    height: 35px;
+    border-radius: 11px;
+  }
+  .brand small {
+    font-size: var(--text-xs);
+  }
+  .side-nav button {
+    font-size: var(--text-sm);
+    padding: 12px 10px;
+    gap: 9px;
+  }
+  .clinic-card {
+    padding: 16px 2px;
+  }
+  .clinic-card strong {
+    font-size: var(--text-xs);
+  }
+  main {
+    padding: 25px 22px;
+  }
+  .topbar {
+    padding: 0 22px;
+    height: 66px;
+  }
+  .topbar-date {
+    font-size: var(--text-xs);
+  }
+  .topbar-right {
+    gap: 12px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .welcome-banner {
+    padding: 27px;
+    min-height: 240px;
+  }
+  .welcome-banner h2 {
+    font-size: 26px;
+  }
+  .welcome-art {
+    width: 225px;
+    min-height: 170px;
+    margin-right: -20px;
+  }
+  .welcome-art::before {
+    width: 180px;
+    height: 180px;
+    left: 20px;
+    top: 10px;
+  }
+  .welcome-dog {
+    width: 125px;
+    height: 125px;
+    left: 5px;
+    top: 32px;
+  }
+  .welcome-cat {
+    width: 95px;
+    height: 95px;
+    top: 95px;
+    right: 0;
+  }
+  .art-caption {
+    font-size: var(--text-sm);
+    left: 10px;
+    bottom: -5px;
+  }
+  .sparkle-two {
+    display: none;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .service-mini-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pets-workspace {
+    grid-template-columns: 1fr;
+  }
+  .pet-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+  .pet-list-card {
+    min-width: 190px;
+    width: auto;
+  }
+  .add-pet-card {
+    min-width: 160px;
+  }
+  .pet-profile-heading .actions {
+    width: auto;
+    margin-top: 38px;
+  }
+  .pet-profile-heading {
+    gap: 15px;
+  }
+  .booking-layout {
+    grid-template-columns: 1fr;
+  }
+  .booking-summary {
+    position: static;
+  }
+  .booking-summary dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 25px;
+  }
+  .summary-note {
+    max-width: 400px;
+  }
+  .auth-story {
+    padding: 35px;
+  }
+  .story-main h1 {
+    font-size: 42px;
+  }
+  .auth-art {
+    transform: scale(0.85);
+    transform-origin: left center;
+  }
+}
+@media (max-width: 720px) {
+  .app-shell {
+    display: block;
+  }
+  .sidebar {
+    position: relative;
+    height: auto;
+    padding: 18px 16px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar > .brand {
+    margin-bottom: 16px;
+    padding: 0 5px;
+  }
+  .workspace-label,
+  .sidebar-bottom {
+    display: none;
+  }
+  .side-nav {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    gap: 5px;
+  }
+  .side-nav button {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 10px 12px;
+  }
+  .side-nav button svg {
+    width: 15px;
+    height: 15px;
+  }
+  .topbar {
+    height: 55px;
+    padding: 0 20px;
+  }
+  .topbar-date {
+    display: none;
+  }
+  .breadcrumb {
+    font-size: 0;
+    gap: 0;
+  }
+  .breadcrumb > span {
+    display: none;
+  }
+  .breadcrumb strong {
+    font-size: var(--text-sm);
+  }
+  .topbar .mobile-signout {
+    display: inline-flex;
+  }
+  main {
+    padding: 25px 18px;
+  }
+  .page-heading {
+    align-items: flex-start;
+    gap: 15px;
+  }
+  .page-heading p {
+    font-size: var(--text-sm);
+    max-width: 330px;
+  }
+  .page-heading .eyebrow {
+    font-size: var(--text-xs);
+  }
+  .page-heading h1 {
+    font-size: 29px;
+  }
+  .page-heading > .actions .btn {
+    font-size: var(--text-sm);
+    padding: 10px 12px;
+  }
+  .welcome-banner {
+    padding: 24px;
+  }
+  .welcome-banner > div:first-child {
+    max-width: 58%;
+  }
+  .welcome-banner h2 {
+    font-size: 27px;
+  }
+  .welcome-art {
+    width: 210px;
+  }
+  .stats-grid {
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .stat-card {
+    padding: 17px;
+  }
+  .stat-card strong {
+    font-size: 26px;
+  }
+  .pets-toolbar {
+    gap: 12px;
+  }
+  .pets-toolbar .search-field {
+    flex: 1;
+    min-width: 180px;
+  }
+  .pets-toolbar > .small-text {
+    display: none;
+  }
+  .pet-profile-heading .actions {
+    width: 100%;
+    margin-top: 0;
+  }
+  .pet-facts {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .pet-notes-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .timeline-top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .timeline-top .small-text {
+    order: -1;
+  }
+  .service-management-grid {
+    gap: 15px;
+  }
+  .service-management-card {
+    padding: 22px;
+  }
+  .service-management-card h2 {
+    font-size: var(--text-title);
+  }
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+  .auth-story {
+    padding: 25px 30px;
+    min-height: 0;
+  }
+  .auth-story > .brand {
+    margin-bottom: 25px;
+  }
+  .story-main h1 {
+    font-size: 39px;
+  }
+  .story-main h1 br:nth-of-type(2) {
+    display: none;
+  }
+  .story-main > p {
+    max-width: 400px;
+    font-size: var(--text-sm);
+    margin-top: 14px;
+  }
+  .auth-art {
+    display: none;
+  }
+  .story-footer {
+    margin-top: 20px;
+    font-size: var(--text-xs);
+  }
+  .auth-side {
+    padding: 35px 25px 45px;
+  }
+  .auth-card {
+    max-width: 420px;
+  }
+  .modal-backdrop {
+    padding: 16px;
+  }
+  .modal-card {
+    max-height: calc(100dvh - 32px);
+    border-radius: 18px;
+  }
+  .modal-header {
+    padding: 24px 22px 18px;
+  }
+  .modal-header h2 {
+    font-size: var(--text-title);
+  }
+  .modal-body {
+    padding: 0 22px 12px;
+  }
+  .modal-footer {
+    padding: 18px 22px;
+  }
+  .checkbox-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 450px) {
+  main {
+    padding: 23px 15px;
+  }
+  .page-heading {
+    flex-wrap: wrap;
+  }
+  .page-heading > .actions {
+    width: 100%;
+  }
+  .page-heading > .actions .btn {
+    min-height: 36px;
+  }
+  .welcome-banner {
+    padding: 23px;
+    min-height: 240px;
+  }
+  .welcome-banner > div:first-child {
+    max-width: 75%;
+  }
+  .welcome-banner h2 {
+    font-size: 26px;
+  }
+  .welcome-banner p {
+    max-width: 220px;
+  }
+  .welcome-art {
+    position: absolute;
+    right: -65px;
+    bottom: 0;
+    width: 150px;
+    height: 200px;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .welcome-art::before {
+    display: none;
+  }
+  .welcome-dog {
+    width: 115px;
+    height: 115px;
+    left: 0;
+    top: 30px;
+  }
+  .welcome-cat {
+    display: none;
+  }
+  .art-caption,
+  .art-sparkle {
+    display: none;
+  }
+  .stat-card {
+    padding: 14px;
+  }
+  .stat-card strong {
+    font-size: 23px;
+  }
+  .stat-card .icon-tile {
+    width: 30px;
+    height: 30px;
+  }
+  .stat-card small {
+    font-size: var(--text-xs);
+  }
+  .panel-header {
+    padding: 21px 18px 16px;
+    gap: 10px;
+  }
+  .panel-header h2 {
+    font-size: var(--text-heading);
+  }
+  .pet-cover {
+    height: 95px;
+    padding: 22px;
+  }
+  .pet-cover-label {
+    font-size: var(--text-xs);
+  }
+  .pet-profile-heading {
+    padding: 0 20px 20px;
+  }
+  .pet-avatar.xl {
+    width: 87px;
+    height: 87px;
+  }
+  .pet-identity {
+    padding-top: 34px;
+  }
+  .pet-identity h2 {
+    font-size: 25px;
+  }
+  .pet-tab-content {
+    padding: 20px;
+  }
+  .pet-tabs {
+    padding: 0 20px;
+    gap: 18px;
+  }
+  .pet-tabs button {
+    font-size: var(--text-xs);
+  }
+  .pet-notes-grid {
+    grid-template-columns: 1fr;
+  }
+  .pet-archive {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .next-visit-empty {
+    flex-wrap: wrap;
+  }
+  .next-visit-empty > div {
+    flex-basis: calc(100% - 37px);
+  }
+  .next-visit-empty > .btn {
+    margin-left: 37px;
+  }
+  .service-mini {
+    padding: 16px;
+  }
+  .service-mini strong {
+    font-size: var(--text-sm);
+  }
+  .service-mini small {
+    font-size: var(--text-xs);
+  }
+  .booking-section {
+    padding: 21px 18px;
+  }
+  .service-option {
+    padding: 15px 12px;
+  }
+  .service-option > strong {
+    font-size: var(--text-sm);
+  }
+  .service-option > p {
+    font-size: var(--text-xs);
+  }
+  .time-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .pet-option {
+    min-width: 140px;
+  }
+  .appointment-card {
+    padding: 20px 18px;
+  }
+  .appointment-top {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .appointment-pet {
+    gap: 10px;
+  }
+  .appointment-pet h3 span {
+    display: block;
+    font-size: var(--text-sm);
+    margin-top: 3px;
+  }
+  .appointment-pet p {
+    font-size: var(--text-xs);
+  }
+  .appointment-details {
+    gap: 12px;
+  }
+  .appointment-details > small {
+    display: none;
+  }
+  .appointment-actions .actions {
+    align-self: stretch;
+  }
+  .appointment-actions .btn {
+    flex: 1;
+  }
+  .service-management-grid {
+    grid-template-columns: 1fr;
+  }
+  .schedule-panel .panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .schedule-table td {
+    min-width: 170px;
+  }
+  .schedule-legend {
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 0 18px 18px;
+  }
+  .schedule-legend span:last-child {
+    margin-left: 0;
+  }
+  .notification-panel {
+    width: 285px;
+    right: -45px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .photo-editor {
+    align-items: flex-start;
+    padding: 14px;
+    gap: 12px;
+  }
+  .photo-editor .text-button {
+    margin-left: 0;
+    display: block;
+  }
+  .time-checkboxes {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .receipt {
+    padding: 25px 22px;
+  }
+  .receipt-meta {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .modal-header .eyebrow {
+    font-size: var(--text-xs);
+  }
+}
+@media (max-width: 720px) {
+  .app-shell .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 60;
+    width: 280px;
+    max-width: calc(100vw - 48px);
+    height: 100dvh;
+    padding: 24px 18px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+  }
+  .app-shell.mobile-menu-open .sidebar {
+    transform: translateX(0);
+  }
+  .app-shell.mobile-menu-open .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: #23384d66;
+  }
+  .app-shell .sidebar-header {
+    flex-direction: row;
+    margin-bottom: 28px;
+  }
+  .app-shell .sidebar-header .sidebar-toggle {
+    display: none;
+  }
+  .app-shell .sidebar-header .sidebar-mobile-close {
+    display: inline-flex;
+  }
+  .app-shell .sidebar .side-nav {
+    display: grid;
+    overflow: visible;
+    gap: 5px;
+  }
+  .app-shell .sidebar .side-nav button {
+    justify-content: flex-start;
+    padding: 12px 14px;
+    font-size: var(--text-base);
+  }
+  .app-shell .sidebar .side-nav button > span,
+  .app-shell .sidebar .brand > span:last-child,
+  .app-shell .sidebar .profile-mini > div {
+    display: block;
+  }
+  .app-shell .sidebar .nav-count {
+    display: inline-block;
+  }
+  .app-shell .sidebar .workspace-label {
+    display: block;
+  }
+  .app-shell .sidebar .sidebar-bottom {
+    display: block;
+    padding-top: 20px;
+  }
+  .app-shell .sidebar .clinic-card {
+    display: flex;
+  }
+  .app-shell .sidebar .profile-mini {
+    justify-content: flex-start;
+  }
+  .app-shell .sidebar .profile-mini > .user-avatar {
+    display: flex;
+  }
+  .topbar .mobile-menu-toggle {
+    display: inline-flex;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .topbar .breadcrumb {
+    margin-right: auto;
+    min-width: 0;
+  }
+  .topbar .breadcrumb strong {
+    font-size: var(--text-sm);
+  }
+  .topbar .topbar-right {
+    gap: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+@media print {
+  body {
+    background: white;
+  }
+  #app,
+  #toast,
+  .no-print {
+    display: none !important;
+  }
+  #modal-root {
+    display: block;
+  }
+  .modal-backdrop {
+    position: static;
+    display: block;
+    padding: 0;
+    background: white;
+    backdrop-filter: none;
+  }
+  .modal-card {
+    max-height: none;
+    max-width: none;
+    width: 100%;
+    box-shadow: none;
+    border: 0;
+    overflow: visible;
+  }
+  .receipt {
+    padding: 20px;
+  }
+  .dialog-open {
+    overflow: visible;
+  }
+  .receipt-total {
+    border-top: 1px solid #ccc;
+  }
+  @page {
+    size: A4;
+    margin: 18mm;
+  }
+}

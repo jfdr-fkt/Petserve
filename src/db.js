@@ -31,8 +31,8 @@ async function seedDatabase(file) {
 
   if (fs.existsSync(file)) {
     const db = JSON.parse(fs.readFileSync(file, 'utf8'));
-    // Migrate older databases that lack new fields
-    if (!db.healthLogs) db.healthLogs = [];
+    await migrate(db);
+    fs.writeFileSync(file, JSON.stringify(db, null, 2) + '\n');
     return db;
   }
 
@@ -48,15 +48,15 @@ async function seedDatabase(file) {
         name: 'Alex Rivera',
         email: 'alex@example.test',
         role: 'customer',
-        passwordHash: demoHash
+        passwordHash: demoHash,
       },
       {
         id: newId(),
         name: 'Clinic Staff',
         email: 'staff@petserve.test',
         role: 'staff',
-        passwordHash: demoHash
-      }
+        passwordHash: demoHash,
+      },
     ],
     pets: [
       {
@@ -68,8 +68,8 @@ async function seedDatabase(file) {
         age: '2 years',
         notes: 'Friendly dog, gets anxious during hair drying.',
         photoUrl: '',
-        createdAt: now()
-      }
+        createdAt: now(),
+      },
     ],
     healthLogs: [
       {
@@ -79,7 +79,7 @@ async function seedDatabase(file) {
         title: '5-in-1 Core Vaccine',
         date: '2026-05-15',
         notes: 'Administered at Petopia Clinic.',
-        createdAt: now()
+        createdAt: now(),
       },
       {
         id: newId(),
@@ -88,15 +88,55 @@ async function seedDatabase(file) {
         title: 'Routine Deworming',
         date: '2026-07-10',
         notes: 'Weight checked: 12 kg.',
-        createdAt: now()
-      }
+        createdAt: now(),
+      },
     ],
     appointments: [],
-    payments: []
+    payments: [],
   };
 
+  await migrate(initial);
   fs.writeFileSync(file, JSON.stringify(initial, null, 2) + '\n', { flag: 'wx' });
   return initial;
+}
+
+async function migrate(db) {
+  db.version = 3;
+  db.healthLogs ||= [];
+  db.services ||= SERVICES.map((service) => ({ ...service }));
+  db.schedule ||= { weekdays: [0, 6], timeSlots: require('./config').TIME_SLOTS, blocked: [] };
+  db.serviceRecords ||= [];
+  db.feedback ||= [];
+  db.gallery ||= [];
+  if (!db.users.some((user) => user.role === 'admin')) {
+    db.users.push({
+      id: newId(),
+      name: 'Clinic Administrator',
+      email: 'admin@petserve.test',
+      role: 'admin',
+      passwordHash: await hashPassword('Petserve123!'),
+    });
+  }
+  for (const appointment of db.appointments) {
+    const service = db.services.find((s) => s.id === appointment.serviceId);
+    appointment.serviceName ||= service?.name || 'Service';
+    appointment.basePrice ??= service?.basePrice || 0;
+    appointment.duration ||= service?.duration || 60;
+    appointment.resource ||= service?.resource || 'veterinarian';
+    if (
+      appointment.status === 'completed' &&
+      !db.serviceRecords.some((record) => record.appointmentId === appointment.id)
+    ) {
+      db.serviceRecords.push({
+        id: newId(),
+        appointmentId: appointment.id,
+        petId: appointment.petId,
+        notes: appointment.staffNote || '',
+        recordedAt: appointment.createdAt,
+        recordedBy: '',
+      });
+    }
+  }
 }
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
@@ -112,38 +152,64 @@ function makePersist(db, dbFile) {
 // ─── View Projections ────────────────────────────────────────────────────────
 
 function paymentView(db, appointment) {
-  const p = db.payments.find(item => item.appointmentId === appointment.id);
+  const p = db.payments.find((item) => item.appointmentId === appointment.id);
   return p
-    ? { id: p.id, amount: p.amount, method: p.method, reference: p.reference, recordedAt: p.recordedAt }
+    ? {
+        id: p.id,
+        amount: p.amount,
+        method: p.method,
+        reference: p.reference,
+        recordedAt: p.recordedAt,
+        status: 'paid',
+        recordedBy: db.users.find((user) => user.id === p.recordedBy)?.name || 'Clinic staff',
+      }
     : null;
 }
 
 function appointmentView(db, appointment) {
-  const pet = db.pets.find(item => item.id === appointment.petId);
-  const owner = db.users.find(item => item.id === appointment.customerId);
-  const service = SERVICES.find(item => item.id === appointment.serviceId);
+  const pet = db.pets.find((item) => item.id === appointment.petId);
+  const owner = db.users.find((item) => item.id === appointment.customerId);
+  const service = db.services.find((item) => item.id === appointment.serviceId);
   return {
     id: appointment.id,
     date: appointment.date,
     time: appointment.time,
     serviceId: appointment.serviceId,
-    serviceName: service?.name ?? 'Service',
+    serviceName: appointment.serviceName || service?.name || 'Service',
+    basePrice: appointment.basePrice ?? service?.basePrice ?? 0,
+    duration: appointment.duration || service?.duration || 60,
+    resource: appointment.resource || service?.resource,
     petId: appointment.petId,
     petName: pet?.name ?? 'Pet',
     customerName: owner?.name ?? 'Customer',
+    customerId: appointment.customerId,
     status: appointment.status,
     note: appointment.note,
     staffNote: appointment.staffNote,
     createdAt: appointment.createdAt,
-    payment: paymentView(db, appointment)
+    serviceRecord:
+      db.serviceRecords.find((record) => record.appointmentId === appointment.id) || null,
+    payment: paymentView(db, appointment),
   };
 }
 
-const PUBLIC_USER = u => ({ id: u.id, name: u.name, email: u.email, role: u.role });
+const PUBLIC_USER = (u) => ({
+  id: u.id,
+  name: u.name,
+  email: u.email,
+  role: u.role,
+  phone: u.phone || '',
+  disabled: Boolean(u.disabled),
+});
 
 module.exports = {
-  seedDatabase, makePersist,
-  hashPassword, verifyPassword,
-  paymentView, appointmentView, PUBLIC_USER,
-  newId, now
+  seedDatabase,
+  makePersist,
+  hashPassword,
+  verifyPassword,
+  paymentView,
+  appointmentView,
+  PUBLIC_USER,
+  newId,
+  now,
 };

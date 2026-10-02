@@ -1,0 +1,79 @@
+import { state, isStaff } from './state.js';
+import { brand, icon } from './components.js';
+import { escapeHTML as e, dateLabel, todayManila } from './utils.js';
+
+export function navigation() {
+  const items = isStaff()
+    ? [
+        ['overview', 'overview', 'Overview'],
+        ['appointments', 'queue', 'Appointments'],
+        ['schedule', 'calendar', 'Schedule'],
+        ['pets', 'pets', 'Pet records'],
+        ['services', 'grooming', 'Services'],
+        ['payments', 'card', 'Payments'],
+        ['reports', 'reports', 'Reports'],
+      ]
+    : [
+        ['overview', 'overview', 'Overview'],
+        ['pets', 'pets', 'My pets'],
+        ['book', 'book', 'Book a visit'],
+        ['appointments', 'queue', 'My appointments'],
+        ['payments', 'card', 'Payments & receipts'],
+      ];
+  items.push(['gallery', 'camera', 'Petopia gallery']);
+  items.push(['feedback', 'feedback', isStaff() ? 'Customer feedback' : 'My feedback']);
+  if (state.data.user.role === 'admin') items.push(['accounts', 'shield', 'Accounts']);
+  items.push(['account', 'settings', 'My account']);
+  return items;
+}
+export function notices() {
+  const apps = state.data.appointments;
+  const list = isStaff()
+    ? apps
+        .filter((a) => a.status === 'pending')
+        .map((a) => ({
+          title: `${a.petName} is waiting for review`,
+          text: `${a.serviceName} · ${dateLabel(a.date)}`,
+          view: 'appointments',
+        }))
+    : apps
+        .filter((a) => a.status === 'confirmed')
+        .map((a) => ({
+          title: `${a.petName}’s visit is confirmed`,
+          text: `${a.serviceName} · ${dateLabel(a.date)}`,
+          view: 'appointments',
+        }));
+  for (const h of state.data.healthLogs.filter(
+    (h) =>
+      h.dueDate &&
+      h.dueDate <=
+        new Date(Date.parse(`${todayManila()}T12:00Z`) + 14 * 86400000).toISOString().slice(0, 10),
+  )) {
+    list.push({
+      title: `${state.data.pets.find((p) => p.id === h.petId)?.name || 'Pet'} · care reminder`,
+      text: `${h.title} · follow-up ${dateLabel(h.dueDate)}`,
+      view: 'pets',
+    });
+  }
+  return list;
+}
+export function shell(content) {
+  const user = state.data.user,
+    items = navigation(),
+    updates = notices();
+  return `<div class="app-shell ${state.sidebarCollapsed ? 'sidebar-collapsed' : ''} ${state.mobileMenuOpen ? 'mobile-menu-open' : ''}"><button type="button" class="sidebar-overlay" data-action="sidebar-close" aria-label="Close navigation"></button><aside class="sidebar" id="sidebar" ${window.innerWidth <= 720 && !state.mobileMenuOpen ? 'inert' : ''}><div class="sidebar-header"><a class="brand" href="#overview" data-view="overview">${brand()}</a><button type="button" class="icon-button sidebar-toggle" data-action="sidebar-toggle" aria-label="${state.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}" aria-expanded="${!state.sidebarCollapsed}" aria-controls="sidebar">${icon(state.sidebarCollapsed ? 'expand' : 'collapse')}</button><button type="button" class="icon-button sidebar-mobile-close" data-action="sidebar-close" aria-label="Close navigation">${icon('close')}</button></div><div class="workspace-label">${user.role === 'customer' ? 'Your pet care' : user.role === 'admin' ? 'Clinic administration' : 'Clinic workspace'}</div><nav class="side-nav" aria-label="Main navigation">${items.map(([view, glyph, label]) => `<button type="button" data-view="${view}" title="${label}" aria-label="${label}" class="${state.view === view ? 'active' : ''}" ${state.view === view ? 'aria-current="page"' : ''}>${icon(glyph)}<span>${label}</span>${view === 'appointments' && isStaff() && state.data.appointments.some((a) => a.status === 'pending') ? `<small class="nav-count">${state.data.appointments.filter((a) => a.status === 'pending').length}</small>` : ''}</button>`).join('')}</nav><div class="sidebar-bottom"><div class="clinic-card"><span class="clinic-dot"></span><div><strong>Petopia Pet Care Services</strong><small>Timog Avenue, Tagum City</small></div></div><div class="profile-mini"><span class="user-avatar">${e(user.name[0])}</span><div><strong>${e(user.name)}</strong><small>${user.role === 'staff' ? 'Employee' : user.role === 'admin' ? 'Administrator' : 'Pet parent'}</small></div><button type="button" class="icon-button" data-action="logout" aria-label="Sign out" title="Sign out">${icon('logout')}</button></div></div></aside><div class="main-shell" ${state.mobileMenuOpen ? 'inert' : ''}><header class="topbar"><button type="button" class="icon-button mobile-menu-toggle" data-action="mobile-menu" aria-label="Open navigation" aria-expanded="${state.mobileMenuOpen}" aria-controls="sidebar">${icon('menu')}</button><div class="breadcrumb">Your workspace <span>/</span> <strong>${items.find((item) => item[0] === state.view)?.[2] || 'Overview'}</strong></div><div class="topbar-right"><span class="topbar-date">${icon('calendar')}${dateLabel(todayManila())}</span><div class="notification-wrap"><button type="button" class="icon-button notification-button" data-action="notifications" aria-label="Notifications${updates.length ? `, ${updates.length} updates` : ''}" aria-expanded="${state.notifications}">${icon('bell')}${updates.length ? '<span class="notification-dot"></span>' : ''}</button>${
+    state.notifications
+      ? `<div class="notification-panel"><h3>Care updates</h3>${
+          updates.length
+            ? updates
+                .slice(0, 8)
+                .map(
+                  (n) =>
+                    `<button type="button" data-view="${n.view}"><strong>${e(n.title)}</strong><small>${e(n.text)}</small></button>`,
+                )
+                .join('')
+            : '<p>You’re all caught up.</p>'
+        }</div>`
+      : ''
+  }</div><button type="button" class="user-avatar small" data-view="account" aria-label="My account">${e(user.name[0])}</button><button type="button" class="icon-button mobile-signout" data-action="logout" aria-label="Sign out">${icon('logout')}</button></div></header><main id="main-content" tabindex="-1">${content}</main></div></div>`;
+}
