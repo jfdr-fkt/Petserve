@@ -6,6 +6,7 @@ import { communityDialog } from './community-dialogs.js';
 import { paymentDialog } from './payment-dialogs.js';
 import { shiftDialog } from './shift-schedule.js';
 import { accountDialog } from './account-dialogs.js';
+import { careDialog } from './care-dialogs.js';
 
 export function dialogContent() {
   if (!state.dialog) return '';
@@ -22,7 +23,8 @@ export function dialogContent() {
     communityDialog(type, id, d) ||
     paymentDialog(type, id, d) ||
     shiftDialog(type, id, d) ||
-    accountDialog(type, id);
+    accountDialog(type, id) ||
+    careDialog(type, id);
   if (community) {
     ({ title, description, content, label } = community);
   } else if (type === 'pet') {

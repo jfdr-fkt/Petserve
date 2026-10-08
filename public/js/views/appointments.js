@@ -28,7 +28,34 @@ export function appointments() {
       ['Completed', apps.filter((a) => a.status === 'completed').length, 'check', 'lavender'],
       ['All visits', apps.length, 'queue', 'peach'],
     ],
-  )}<div class="list-toolbar"><div class="tabs filter-tabs">${['all', 'pending', 'confirmed', 'completed', 'cancelled', 'rejected'].map((status) => `<button type="button" data-filter="${status}" class="${state.filter === status ? 'active' : ''}">${status === 'all' ? 'All visits' : status[0].toUpperCase() + status.slice(1)}<span>${status === 'all' ? apps.length : apps.filter((a) => a.status === status).length}</span></button>`).join('')}</div><label class="search-field compact">${icon('search')}<input type="search" name="search" aria-label="Search appointments" value="${e(state.search)}" placeholder="Find a visit…"></label></div><div class="appointment-list">${list.length ? list.map((a) => appointmentCard(a, staff)).join('') : `<section class="panel">${empty('No visits here just yet', state.search ? 'Try another name or service.' : staff ? 'New appointment requests will appear here.' : 'Find a time for their next little care moment.', staff ? '' : viewButton('Book a visit', 'book', 'plus', 'soft'), 'calendar')}</section>`}</div>`;
+  )}<div class="list-toolbar"><div class="tabs filter-tabs">${['all', 'pending', 'confirmed', 'completed', 'cancelled', 'rejected'].map((status) => `<button type="button" data-filter="${status}" class="${state.filter === status ? 'active' : ''}">${status === 'all' ? 'All visits' : status[0].toUpperCase() + status.slice(1)}<span>${status === 'all' ? apps.length : apps.filter((a) => a.status === status).length}</span></button>`).join('')}</div><label class="search-field compact">${icon('search')}<input type="search" name="search" aria-label="Search appointments" value="${e(state.search)}" placeholder="Find a visit…"></label></div><div class="appointment-list">${list.length ? appointmentGroups(list, staff) : `<section class="panel">${empty('No visits here just yet', state.search ? 'Try another name or service.' : staff ? 'New appointment requests will appear here.' : 'Find a time for their next little care moment.', staff ? '' : viewButton('Book a visit', 'book', 'plus', 'soft'), 'calendar')}</section>`}</div>`;
+}
+
+function appointmentGroups(list, staff) {
+  const emitted = new Set();
+  return list
+    .map((item) => {
+      if (!item.carePlanId) return appointmentCard(item, staff);
+      if (emitted.has(item.carePlanId)) return '';
+      emitted.add(item.carePlanId);
+      const full = state.data.appointments.filter((entry) => entry.carePlanId === item.carePlanId);
+      const shown = list
+        .filter((entry) => entry.carePlanId === item.carePlanId)
+        .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+      const count = new Set(full.flatMap((entry) => entry.petIds)).size;
+      const dates = new Set(full.map((entry) => entry.date));
+      const timing =
+        dates.size > 1
+          ? `${dates.size} visit dates · See each service below`
+          : `${dateLabel(item.date)} · Arrival ${timeLabel(item.arrivalTime)}`;
+      const pending = full.every((entry) => entry.status === 'pending');
+      const active = full.some(
+        (entry) => ['pending', 'confirmed'].includes(entry.status) && !entry.payment,
+      );
+      const attrs = `data-id="${item.carePlanId}"`;
+      return `<section class="care-request-group"><header class="care-request-heading"><div><span class="eyebrow">CARE REQUEST #${item.carePlanId.slice(0, 8).toUpperCase()}</span><h2>${count} ${count === 1 ? 'pet' : 'pets'} · ${full.length} service appointments</h2><p>${timing}${staff ? ` · ${e(item.customerName)}` : ''}</p></div><div class="actions">${staff && pending ? button('Decline request', 'care-status-open', '', 'outline', `${attrs} data-status="rejected"`) + button('Confirm all services', 'care-status-open', 'check', 'primary', `${attrs} data-status="confirmed"`) : ''}${active ? button('Cancel remaining care', 'care-status-open', '', 'outline', `${attrs} data-status="cancelled"`) : ''}</div></header>${shown.map((entry) => appointmentCard(entry, staff)).join('')}</section>`;
+    })
+    .join('');
 }
 
 function appointmentCard(a, staff) {

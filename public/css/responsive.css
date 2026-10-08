@@ -676,7 +676,7 @@
   .app-shell .sidebar .side-nav {
     display: flex;
     overflow-y: auto;
-    gap: 18px;
+    gap: 28px;
   }
   .app-shell .sidebar .side-nav button {
     justify-content: flex-start;

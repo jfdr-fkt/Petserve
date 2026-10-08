@@ -102,7 +102,7 @@ async function seedDatabase(file) {
 }
 
 async function migrate(db) {
-  db.version = 6;
+  db.version = 7;
   db.healthLogs ||= [];
   db.services ||= SERVICES.map((service) => ({ ...service }));
   db.schedule ||= { weekdays: [0, 6], timeSlots: require('./config').TIME_SLOTS, blocked: [] };
@@ -200,6 +200,8 @@ function appointmentView(db, appointment) {
   const service = db.services.find((item) => item.id === appointment.serviceId);
   return {
     id: appointment.id,
+    carePlanId: appointment.carePlanId || '',
+    arrivalTime: appointment.arrivalTime || appointment.time,
     date: appointment.date,
     time: appointment.time,
     serviceId: appointment.serviceId,

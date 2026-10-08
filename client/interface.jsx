@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
+import { decorateSelects, dismissSelectMenu } from '../public/js/select-controls.js';
 
 // Existing workflow modules provide escaped markup; React owns the persistent
 // shell. The synchronous bridge preserves their
@@ -53,6 +54,7 @@ export function createInterface(root, modalRoot) {
   const commit = (target, component) => flushSync(() => target.render(component));
   return {
     workspace(html) {
+      dismissSelectMenu();
       const template = document.createElement('template');
       template.innerHTML = html;
       const shell = template.content.querySelector('.app-shell'),
@@ -67,12 +69,17 @@ export function createInterface(root, modalRoot) {
         content: template.content.querySelector('#main-content').innerHTML,
       };
       commit(workspaceRoot, <Workspace parts={parts} />);
+      decorateSelects(root);
     },
     auth(html) {
+      dismissSelectMenu();
       commit(workspaceRoot, <div dangerouslySetInnerHTML={{ __html: html }} />);
+      decorateSelects(root);
     },
     dialog(html, key) {
+      dismissSelectMenu();
       commit(dialogRoot, html ? <Dialog html={html} dialogKey={key} /> : null);
+      decorateSelects(modalRoot);
     },
   };
 }

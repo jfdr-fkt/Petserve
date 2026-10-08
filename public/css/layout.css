@@ -112,13 +112,13 @@
   text-transform: uppercase;
   font-size: var(--text-xs);
   letter-spacing: 1.1px;
-  margin: 0 12px 14px;
+  margin: 0 12px 28px;
   font-weight: 600;
 }
 .side-nav {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 28px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -133,12 +133,12 @@
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--muted);
-  padding: 0 14px 6px;
+  padding: 8px 14px 16px;
   letter-spacing: 0.5px;
 }
 .nav-group + .nav-group {
   border-top: 1px solid var(--border);
-  padding-top: 16px;
+  padding-top: 24px;
 }
 .sidebar-collapsed .nav-group-label {
   display: none;

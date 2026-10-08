@@ -1,0 +1,221 @@
+.booking-selection-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 8px 0 24px;
+}
+.booking-selection-tools .check-option {
+  padding: 12px 16px;
+}
+.selection-check {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border: 1px solid var(--selected-border);
+  border-radius: 7px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+.selection-check.checked {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+.selection-check.partial {
+  background: var(--tint);
+  color: var(--primary);
+}
+.service-option.partial {
+  border-color: var(--selected-border);
+}
+.selection-check svg {
+  width: 17px;
+  height: 17px;
+}
+.service-option {
+  position: relative;
+}
+.service-option .selection-check {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+.pet-care-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  align-items: start;
+  gap: 18px;
+}
+.pet-care-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.pet-care-card.selected {
+  border-color: var(--selected-border);
+}
+.pet-care-card .pet-option {
+  border: none;
+  width: 100%;
+  border-radius: 0;
+  padding: 16px;
+}
+.pet-option > div {
+  min-width: 0;
+}
+.pet-option strong {
+  overflow-wrap: anywhere;
+}
+.pet-care-services {
+  padding: 14px 16px 18px;
+  border: none;
+  display: grid;
+  gap: 10px;
+}
+.pet-care-services .check-option {
+  padding: 10px 12px;
+  align-items: center;
+  gap: 12px;
+  white-space: normal;
+}
+.booking-selection-tools .check-option {
+  white-space: normal;
+}
+.booking-selection-tools input,
+.pet-care-services input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.pet-care-services strong {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.pet-care-services small {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: 3px;
+}
+.care-selection-hint {
+  margin-top: 18px;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+.group-summary small {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: 4px;
+}
+.group-summary > span {
+  align-items: flex-start;
+}
+.group-summary > span > div {
+  min-width: 0;
+}
+.care-plan-preview {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-top: 8px;
+}
+.care-plan-preview h3 {
+  font-size: var(--text-base);
+  margin-bottom: 16px;
+}
+.care-plan-preview ol,
+.care-review-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.care-plan-preview li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+}
+.care-plan-preview time {
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 5px 7px;
+  border-radius: 7px;
+  background: var(--tint);
+}
+.care-plan-preview strong,
+.care-review-list strong {
+  font-size: var(--text-sm);
+  display: block;
+}
+.care-plan-preview span,
+.care-review-list span {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  display: block;
+  margin-top: 4px;
+}
+.care-plan-preview p {
+  font-size: var(--text-sm);
+  margin-top: 16px;
+}
+.care-request-group {
+  padding: 24px;
+  border: 1px solid var(--selected-border);
+  border-radius: 18px;
+  background: var(--subtle);
+  display: grid;
+  gap: 20px;
+}
+.care-request-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.care-request-heading .actions {
+  flex-wrap: wrap;
+}
+@media (min-width: 951px) {
+  .booking-summary {
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}
+.care-request-heading h2 {
+  font-size: var(--text-heading);
+  margin: 8px 0;
+}
+.care-request-heading p {
+  font-size: var(--text-sm);
+}
+.care-review-list {
+  margin-bottom: 24px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.care-review-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+@media (max-width: 720px) {
+  .pet-care-options {
+    grid-template-columns: 1fr;
+  }
+  .care-request-group {
+    padding: 16px;
+  }
+  .care-request-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .care-request-heading .actions {
+    flex-wrap: wrap;
+  }
+}

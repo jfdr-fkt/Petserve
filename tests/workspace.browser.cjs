@@ -185,6 +185,11 @@ const { createApp } = require('../server');
       .locator('.chat-messages')
       .getByText('Another update from the care team.', { exact: true })
       .waitFor({ timeout: 12000 });
+    await admin.waitForFunction(
+      () => document.querySelectorAll('.chat-delete').length === 1,
+      undefined,
+      { timeout: 12000 },
+    );
     assert.equal(await admin.locator('.chat-delete').count(), 1);
     await customer.evaluate(() => document.fonts.ready);
     await customer.screenshot({

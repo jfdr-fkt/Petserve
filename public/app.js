@@ -26,6 +26,7 @@ import {
 import { applyTheme } from './js/themes.js';
 import { loginWelcome, logoutGoodbye } from './js/session-scenes.js';
 import { walletDetails } from './js/payment-dialogs.js';
+import { careItems, careSelectionError, planPreview } from './js/booking-plan.js';
 import './js/experience.js';
 
 const root = document.querySelector('#app');
@@ -177,10 +178,19 @@ async function loadSlots() {
     updateSlots();
     return;
   }
+  const bulk = b.bulk && state.view === 'book' && !state.dialog;
+  if (bulk && careSelectionError()) {
+    state.slotsLoading = false;
+    state.slotError = careSelectionError();
+    updateSlots();
+    return;
+  }
   const params = new URLSearchParams({ date: b.date, serviceId: b.serviceId });
   if (state.dialog?.type === 'reschedule') params.set('appointmentId', state.dialog.id);
   try {
-    const result = await api(`/api/availability?${params}`);
+    const result = bulk
+      ? await api('/api/care-plans/availability', 'POST', { date: b.date, items: careItems() })
+      : await api(`/api/availability?${params}`);
     if (version !== slotRequest) return;
     state.slots = result.slots;
   } catch (error) {
@@ -196,6 +206,8 @@ async function loadSlots() {
 function updateSlots() {
   const picker = document.querySelector('#slot-picker');
   if (picker) picker.innerHTML = slotPicker();
+  const preview = document.querySelector('#care-plan-preview');
+  if (preview) preview.innerHTML = planPreview();
   const submit = document.querySelector(
     'form[data-form="booking"] [type=submit], form[data-form="reschedule"] [type=submit]',
   );
@@ -254,6 +266,24 @@ async function handleClick(event) {
     return;
   }
   if (button.dataset.service) {
+    if (state.booking.bulk) {
+      const b = state.booking,
+        serviceId = button.dataset.service;
+      const remove = b.petIds.length
+        ? b.petIds.every((id) => b.care[id].includes(serviceId))
+        : b.serviceIds.includes(serviceId);
+      b.serviceIds = remove
+        ? b.serviceIds.filter((id) => id !== serviceId)
+        : [...new Set([...b.serviceIds, serviceId])];
+      for (const id of b.petIds)
+        b.care[id] = remove
+          ? b.care[id].filter((item) => item !== serviceId)
+          : [...new Set([...b.care[id], serviceId])];
+      b.time = '';
+      render();
+      await loadSlots();
+      return;
+    }
     state.booking.serviceId = button.dataset.service;
     state.booking.time = '';
     if (state.booking.serviceId !== 'consultation') state.booking.petIds = [state.booking.petId];
@@ -264,6 +294,20 @@ async function handleClick(event) {
   if (button.dataset.bookPet) {
     const petId = button.dataset.bookPet;
     const selected = state.booking.petIds;
+    if (state.booking.bulk) {
+      if (selected.includes(petId)) state.booking.petIds = selected.filter((id) => id !== petId);
+      else if (selected.length < 30) {
+        selected.push(petId);
+        state.booking.care[petId] ||= [...state.booking.serviceIds];
+      } else {
+        toast('Choose up to thirty pets for one care request.');
+        return;
+      }
+      state.booking.time = '';
+      render();
+      await loadSlots();
+      return;
+    }
     if (state.booking.serviceId === 'consultation') {
       if (selected.includes(petId)) {
         if (selected.length > 1) state.booking.petIds = selected.filter((id) => id !== petId);
@@ -446,12 +490,14 @@ async function handleClick(event) {
       return;
     }
     if (action === 'book-pet') {
+      state.booking.bulk = false;
       state.booking.petId = id;
       state.booking.petIds = [id];
       await navigate('book');
       return;
     }
     if (action === 'book-service') {
+      state.booking.bulk = false;
       state.booking.serviceId = id;
       await navigate('book');
       return;
@@ -461,11 +507,17 @@ async function handleClick(event) {
       state.booking.petId = appointment.petId;
       state.booking.petIds = [...appointment.petIds];
       state.booking.serviceId = appointment.serviceId;
+      state.booking.bulk = false;
+      state.booking.serviceIds = [appointment.serviceId];
       await navigate('book');
       return;
     }
     if (action === 'status-open') {
       openDialog('status', id, {}, button.dataset.status);
+      return;
+    }
+    if (action === 'care-status-open') {
+      openDialog('care-status', id, {}, button.dataset.status);
       return;
     }
     if (action === 'payment') {
@@ -591,6 +643,35 @@ root.addEventListener('input', handleInput);
 modalRoot.addEventListener('input', handleInput);
 async function handleChange(event) {
   const target = event.target;
+  if (
+    target.id === 'booking-multiple' ||
+    target.id === 'booking-all-pets' ||
+    target.dataset.carePet
+  ) {
+    const b = state.booking,
+      focused = target.id;
+    if (target.id === 'booking-multiple') {
+      if (!target.checked) b.serviceId = b.care[b.petIds[0]]?.[0] || b.serviceIds[0] || b.serviceId;
+      b.bulk = target.checked;
+      b.serviceIds = [b.serviceId];
+      b.care = Object.fromEntries(b.petIds.map((id) => [id, [b.serviceId]]));
+      if (!b.bulk) b.petIds = b.petIds.slice(0, 1);
+    } else if (target.id === 'booking-all-pets') {
+      b.petIds = target.checked ? state.data.pets.slice(0, 30).map((pet) => pet.id) : [];
+      for (const id of b.petIds) b.care[id] ||= [...b.serviceIds];
+    } else {
+      const id = target.dataset.carePet,
+        service = target.dataset.careService;
+      b.care[id] = target.checked
+        ? [...new Set([...b.care[id], service])]
+        : b.care[id].filter((item) => item !== service);
+    }
+    b.time = '';
+    render();
+    document.getElementById(focused)?.focus({ preventScroll: true });
+    await loadSlots();
+    return;
+  }
   if (target.id === 'theme-select') {
     applyTheme(target.value);
     return;
@@ -807,7 +888,15 @@ async function handleSubmit(event) {
         break;
       case 'booking':
         if (!state.booking.time) throw new Error('Choose an available time.');
-        await api('/api/appointments', 'POST', state.booking);
+        if (state.booking.bulk) {
+          if (careSelectionError()) throw new Error(careSelectionError());
+          await api('/api/care-plans', 'POST', {
+            date: state.booking.date,
+            time: state.booking.time,
+            note: state.booking.note,
+            items: careItems(),
+          });
+        } else await api('/api/appointments', 'POST', state.booking);
         state.booking.note = '';
         state.booking.date = '';
         state.booking.time = '';
@@ -816,6 +905,13 @@ async function handleSubmit(event) {
         state.search = '';
         history.replaceState(null, '', '#appointments');
         message = 'Request sent. The care team will confirm your visit.';
+        break;
+      case 'care-status':
+        await api(`/api/care-plans/${id}/status`, 'PATCH', {
+          ...values,
+          status: state.dialog.status,
+        });
+        message = 'Care request updated.';
         break;
       case 'status':
         await api(`/api/appointments/${id}/status`, 'PATCH', {
@@ -992,7 +1088,7 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Tab') {
     const controls = [
       ...modalRoot.querySelectorAll(
-        'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
+        'button:not(:disabled), input:not(:disabled), select:not(:disabled):not([aria-hidden="true"]), textarea:not(:disabled), [tabindex="0"]',
       ),
     ];
     const first = controls[0],

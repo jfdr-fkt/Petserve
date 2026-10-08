@@ -7,6 +7,7 @@ const handlers = [
   require('./routes/account-deletion'),
   require('./routes/pets'),
   require('./routes/appointments'),
+  require('./routes/care-plans'),
   require('./routes/clinic'),
   require('./routes/shifts'),
   require('./routes/community'),
