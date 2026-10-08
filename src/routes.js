@@ -8,6 +8,7 @@ const handlers = [
   require('./routes/chat-deletion'),
   require('./routes/account-deletion'),
   require('./routes/pets'),
+  require('./routes/pet-media'),
   require('./routes/appointments'),
   require('./routes/care-plans'),
   require('./routes/clinic'),
@@ -60,6 +61,15 @@ function createHandler(db, sessions, persist, uploadsDir) {
                 ? db.shifts.filter((shift) => shift.employeeId === user.id)
                 : [],
           pets,
+          petMedia: user
+            ? db.petMedia
+                .filter((item) => petIds.has(item.petId))
+                .map(({ filename, ...item }) => ({
+                  ...item,
+                  url: `/api/pets/${item.petId}/media/${item.id}/content`,
+                }))
+                .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+            : [],
           healthLogs: db.healthLogs.filter((h) => petIds.has(h.petId)),
           appointments: user
             ? db.appointments

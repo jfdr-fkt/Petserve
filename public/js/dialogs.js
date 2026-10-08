@@ -7,11 +7,13 @@ import { paymentDialog } from './payment-dialogs.js';
 import { shiftDialog } from './shift-schedule.js';
 import { accountDialog } from './account-dialogs.js';
 import { careDialog } from './care-dialogs.js';
+import { petMediaDialog, petMediaViewer } from './pet-media.js';
 
 export function dialogContent() {
   if (!state.dialog) return '';
   const { type, id, status } = state.dialog,
     d = state.draft;
+  if (type === 'pet-media-view') return petMediaViewer(id);
   const a = state.data.appointments.find((a) => a.id === id);
   let title = '',
     description = '',
@@ -21,6 +23,7 @@ export function dialogContent() {
     wide = false;
   const community =
     communityDialog(type, id, d) ||
+    petMediaDialog(type, id, d) ||
     paymentDialog(type, id, d) ||
     shiftDialog(type, id, d) ||
     accountDialog(type, id) ||
@@ -163,5 +166,5 @@ export function dialogContent() {
       '<div class="subtle-note">Cancel or complete any upcoming visits first. This profile will no longer appear in My Pets.</div>';
     label = 'Archive profile';
   }
-  return `<div class="modal-backdrop"><section class="modal-card ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="modal-header"><div><span class="eyebrow">A LITTLE ATTENTION TO DETAIL</span><h2 id="dialog-title">${title}</h2><p>${e(description)}</p></div><button type="button" class="icon-button" data-action="dialog-close" aria-label="Close dialog">${icon('close')}</button></div><form data-form="${form}" data-id="${id || ''}"><div class="modal-body">${content}<div class="form-error" role="alert" hidden></div></div><div class="modal-footer"><button type="button" class="btn btn-outline" data-action="dialog-close">${type === 'status' && status === 'cancelled' ? 'Keep visit' : 'Cancel'}</button><button type="submit" class="btn ${['archive', 'account-delete', 'chat-delete', 'chat-clear'].includes(type) || (type === 'status' && ['cancelled', 'rejected'].includes(status)) ? 'btn-danger' : 'btn-primary'}" ${type === 'reschedule' && !state.booking.time ? 'disabled' : ''}>${label}</button></div></form></section></div>`;
+  return `<div class="modal-backdrop"><section class="modal-card ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="modal-header"><div><span class="eyebrow">A LITTLE ATTENTION TO DETAIL</span><h2 id="dialog-title">${title}</h2><p>${e(description)}</p></div><button type="button" class="icon-button" data-action="dialog-close" aria-label="Close dialog">${icon('close')}</button></div><form data-form="${form}" data-id="${id || ''}"><div class="modal-body">${content}<div class="form-error" role="alert" hidden></div></div><div class="modal-footer"><button type="button" class="btn btn-outline" data-action="dialog-close">${type === 'status' && status === 'cancelled' ? 'Keep visit' : 'Cancel'}</button><button type="submit" class="btn ${['archive', 'account-delete', 'chat-delete', 'chat-clear', 'pet-media-remove'].includes(type) || (type === 'status' && ['cancelled', 'rejected'].includes(status)) ? 'btn-danger' : 'btn-primary'}" ${type === 'reschedule' && !state.booking.time ? 'disabled' : ''}>${label}</button></div></form></section></div>`;
 }

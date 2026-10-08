@@ -11,7 +11,7 @@ npm install
 npm start
 ```
 
-Open **http://127.0.0.1:3000**. Startup builds the local React browser bundle automatically; `node server.js` also builds it before starting. Saved records, transfer submissions, wallet settings, and chat conversations live in `data/db.json`. Gallery files live in `data/uploads/` and private chat attachments in `data/uploads/chat/`. An older database is migrated automatically without resetting its pets, bookings, or payments. Stop the server before copying both the database and uploads directory for a backup.
+Open **http://127.0.0.1:3000**. Startup builds the local React browser bundle automatically; `node server.js` also builds it before starting. Saved records, transfer submissions, wallet settings, and chat conversations live in `data/db.json`. Gallery files live in `data/uploads/`, private chat attachments in `data/uploads/chat/`, and private pet album files in `data/uploads/pets/`. An older database is migrated automatically without resetting its pets, bookings, or payments. Stop the server before copying both the database and uploads directory for a backup.
 
 To use another port in PowerShell:
 
@@ -37,6 +37,7 @@ For the presentation, normal startup adds five sample completed visits to the de
 ## Included workflows
 
 - **My Pets:** searchable companion list, detailed profile, local photo upload, full profile editing, species filters, birthday/age, sex, weight, sensitivities, comfort notes, and archiving. Photo selection preserves the form draft. Active visits must be closed before archiving; appointment and payment history is retained.
+- **Pet albums:** each pet has a **Photos & videos** tab. Owners upload JPG, PNG, WebP, MP4, or WebM files with optional captions, up to 25 MB each and 50 items per pet. Photos open in a larger viewer, and videos support playback and seeking. Only the pet's owner and authorized employees/administrators can view the album; only the owner can upload or remove its items. Pet album uploads stay separate from the shared Petopia gallery and the profile picture. Albums persist across restarts. Archived profiles hide their albums; account deletion removes album records and files, including media from archived pets, while retaining clinic care and payment history.
 - **Health records:** vaccination, deworming, and health notes with record dates, optional clinic-provided follow-up dates, and source labels distinguishing owner information from clinic records. These are records, not diagnosis or treatment advice.
 - **Booking:** grooming, vaccination, deworming, and veterinary consultation; live availability, service prices, selected pets, visit notes, and a request summary. Enable **Book multiple pets & services** to select all pets or any combination, then check one or more services for each pet. Service cards above apply common care to every selected pet; each pet's checklist can be adjusted independently. Up to thirty pets can be included when their care fits the selected day. The customer chooses an arrival time and previews a complete plan using configured slots, care-team capacity, pet conflicts, blocked times, and closing time. All services are submitted together or none are saved. Grooming, vaccination, and deworming keep individual service appointments linked under one care request; consultations share a slot in groups of up to six pets, with per-pet pricing. Each service retains its booked price and per-pet history. The original single-service booking and shared-consultation workflow remains available. Slots use Asia/Manila time, up to 90 days ahead.
 - **Appointments:** requests, staff confirmation or decline, owner-facing staff messages, cancellation, owner/administrator rescheduling for renewed review, and completed care notes. Linked care requests appear together. Staff can confirm or decline all pending services in one action; every time is checked again before confirmation. Customers and staff can cancel remaining upcoming care while preserving completed services and payments. Individual service actions, records, feedback, and receipts remain available. Requests do not reserve a resource until confirmed. Confirmed bookings check overlapping durations for one grooming team and one veterinary team. A pet cannot have overlapping active requests.
@@ -55,7 +56,7 @@ For the presentation, normal startup adds five sample completed visits to the de
 
 ## Walkthrough
 
-1. Sign in as the customer. Open **My pets**, add or edit a pet, upload a photo, and review **About**, **Health records**, and **Visit history**.
+1. Sign in as the customer. Open **My pets**, add or edit a pet, upload a profile photo, and review **About**, **Health records**, and **Visit history**. Open **Photos & videos** to upload a photo or short video to that individual pet's album, view it, or remove it.
 2. Open **Book a visit**, choose a service and available future time, then send the request. For mixed care, check **Book multiple pets & services**, use **Select all pets** or choose individual pets, and check the services each one needs. Choose an arrival time and review the complete service plan. For a shared consultation alone, select several pets with **Veterinary consultation**. Try **Reschedule** on an individual service to request a different time.
 3. Sign in as the employee. Open **Appointments**, confirm the request, and inspect **Schedule**. Schedule editing controls are available only to the administrator.
 4. Use **Record completed care** to enter service notes. For clinic payment, choose **Record payment**. To demonstrate online transfers, set the shop's wallet details in **Payments → Wallet settings**, return as the customer and submit a transaction reference, then verify receipt as the employee. Open the generated receipt and use **Print / save PDF**.
@@ -91,6 +92,7 @@ src/
     account-security.js       Password changes, demo recovery and administrator recovery
     chat-deletion.js          Confirmed whole-chat removal and attachment cleanup
     pets.js                   Pet profiles, archiving, health records
+    pet-media.js              Owner uploads, protected pet albums, media streaming and removal
     appointments.js           Requests, transitions, rescheduling, services, payments
     care-plans.js             Atomic multi-service requests, availability and grouped review
     clinic.js                 Administrator availability, service menu, reports
@@ -115,6 +117,7 @@ public/
     navigation.js             Role-aware workflow groups and menu ordering
     dialogs.js                Focused editing and workflow dialogs
     community-dialogs.js      Feedback and gallery editing dialogs
+    pet-media.js              Individual pet albums, upload/removal dialogs, larger media viewer
     account-dialogs.js        Password management, recovery links and removal confirmations
     profile.js                Profile photo selection that preserves form drafts
     care-dialogs.js           Linked care request review and cancellation

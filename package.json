@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test tests/*.test.js",
-    "test:browser": "npm run build && node tests/browser.smoke.cjs && node tests/features.browser.cjs && node tests/workspace.browser.cjs && node tests/care-plans.browser.cjs && node tests/account-settings.browser.cjs && node tests/motion.browser.cjs && node tests/surface.browser.cjs",
+    "test:browser": "npm run build && node tests/browser.smoke.cjs && node tests/features.browser.cjs && node tests/workspace.browser.cjs && node tests/care-plans.browser.cjs && node tests/account-settings.browser.cjs && node tests/motion.browser.cjs && node tests/surface.browser.cjs && node tests/pet-media.browser.cjs",
     "format": "prettier --write public client scripts src tests server.js package.json README.md .prettierrc.json",
     "format:check": "prettier --check public client scripts src tests server.js package.json README.md .prettierrc.json",
     "build": "node scripts/build.cjs"

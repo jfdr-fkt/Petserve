@@ -10,8 +10,8 @@ export async function api(route, method = 'GET', data) {
   if (!response.ok) throw new Error(body.error || 'The request could not be completed.');
   return body;
 }
-export async function uploadMedia(file, details) {
-  const response = await fetch(`/api/gallery?${new URLSearchParams(details)}`, {
+export async function uploadMedia(file, details, route = '/api/gallery') {
+  const response = await fetch(`${route}?${new URLSearchParams(details)}`, {
     method: 'POST',
     headers: { 'Content-Type': file.type },
     body: file,

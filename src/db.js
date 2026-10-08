@@ -102,7 +102,7 @@ async function seedDatabase(file) {
 }
 
 async function migrate(db) {
-  db.version = 8;
+  db.version = 9;
   for (const account of db.users) {
     account.demo ??= require('./account-security').isDemoEmail(account.email);
     account.photoUrl ||= '';
@@ -114,6 +114,7 @@ async function migrate(db) {
   db.serviceRecords ||= [];
   db.feedback ||= [];
   db.gallery ||= [];
+  db.petMedia ||= [];
   db.chats ||= [];
   for (const thread of db.chats)
     for (const message of thread.messages) {

@@ -452,6 +452,22 @@ async function handleClick(event) {
       openDialog('gallery-upload');
       return;
     }
+    if (action === 'pet-media-upload') {
+      openDialog('pet-media-upload', id);
+      return;
+    }
+    if (action === 'pet-media-view') {
+      openDialog('pet-media-view', id);
+      return;
+    }
+    if (action === 'pet-media-remove') {
+      openDialog(
+        'pet-media-remove',
+        id,
+        state.data.petMedia.find((item) => item.id === id),
+      );
+      return;
+    }
     if (action === 'gallery-remove') {
       openDialog(
         'gallery-remove',
@@ -726,7 +742,7 @@ async function handleChange(event) {
     if (details) details.innerHTML = walletDetails(target.value);
     return;
   }
-  if (target.id === 'gallery-file') {
+  if (target.id === 'gallery-file' || target.id === 'pet-media-file') {
     const file = target.files?.[0];
     if (state.mediaPreview) URL.revokeObjectURL(state.mediaPreview);
     state.mediaFile = null;
@@ -916,6 +932,21 @@ async function handleSubmit(event) {
       case 'gallery-remove':
         await api(`/api/gallery/${id}`, 'DELETE');
         message = 'Gallery post removed.';
+        break;
+      case 'pet-media-upload':
+        if (!state.mediaFile) throw new Error('Choose a photo or short video.');
+        submit.textContent = 'Saving to pet album…';
+        await uploadMedia(
+          state.mediaFile,
+          { caption: values.caption || '' },
+          `/api/pets/${id}/media`,
+        );
+        state.petTab = 'media';
+        message = 'Saved to this pet’s album.';
+        break;
+      case 'pet-media-remove':
+        await api(`/api/pets/${state.draft.petId}/media/${id}`, 'DELETE');
+        message = 'Photo or video removed.';
         break;
       case 'auth': {
         await api(

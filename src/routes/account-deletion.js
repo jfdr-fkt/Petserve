@@ -36,6 +36,12 @@ module.exports = async ({ req, res, pathname, db, user, sessions, persist, uploa
   const files = [];
   db.users = db.users.filter((item) => item.id !== account.id);
   db.shifts = db.shifts.filter((shift) => shift.employeeId !== account.id);
+  const ownedPetIds = new Set(
+    db.pets.filter((pet) => pet.ownerId === account.id).map((pet) => pet.id),
+  );
+  for (const item of db.petMedia.filter((item) => ownedPetIds.has(item.petId)))
+    files.push(mediaFile(path.join(uploadsDir, 'pets'), item));
+  db.petMedia = db.petMedia.filter((item) => !ownedPetIds.has(item.petId));
   for (const pet of db.pets.filter((item) => item.ownerId === account.id)) {
     pet.deletedAt ||= stamp;
     pet.photoUrl = '';

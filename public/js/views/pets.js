@@ -10,6 +10,7 @@ import {
   viewButton,
 } from '../components.js';
 import { escapeHTML as e, dateLabel, todayManila } from '../utils.js';
+import { petMediaContent } from '../pet-media.js';
 
 export function pets() {
   const staff = isStaff();
@@ -37,12 +38,13 @@ export function pets() {
     list.length
       ? `<div class="pets-workspace"><aside class="pet-list" aria-label="Pet profiles">${list.map((p) => `<button type="button" class="pet-list-card ${p.id === pet.id ? 'selected' : ''}" data-action="pet-select" data-id="${p.id}" aria-pressed="${p.id === pet.id}">${petAvatar(p)}<div><strong>${e(p.name)}</strong><small>${e(p.breed || p.species)}</small><span>${staff ? e(p.ownerName) : e(p.species)}</span></div>${icon('arrow')}</button>`).join('')}${!staff ? `<button type="button" class="add-pet-card" data-action="pet-add">${icon('plus')}<span>A new member of the family</span></button>` : ''}</aside><section class="pet-detail"><div class="pet-cover"><span class="pet-cover-label">${staff ? 'Connected care record' : 'A very good companion'}</span><span class="pet-cover-paw">${icon('brand')}</span></div><div class="pet-profile-heading">${petAvatar(pet, 'xl')}<div class="pet-identity"><span class="eyebrow">${e(pet.species)}${pet.sex ? ` · ${e(pet.sex)}` : ''}</span><h2>${e(pet.name)}</h2><p>${e(pet.breed || 'One of a kind')}${pet.age ? ` · ${e(pet.age)}` : ''}${staff ? ` · ${e(pet.ownerName)}` : ''}</p></div><div class="actions">${button('Edit profile', 'pet-edit', 'edit', 'outline', `data-id="${pet.id}"`)}${!staff ? button('Book a visit', 'book-pet', 'calendar', 'primary', `data-id="${pet.id}"`) : ''}</div></div><div class="pet-tabs tabs" aria-label="Pet details">${[
           ['profile', 'About'],
+          ['media', 'Photos & videos'],
           ['health', 'Health records'],
           ['history', 'Visit history'],
         ]
           .map(
             ([key, label]) =>
-              `<button type="button" data-pet-tab="${key}" class="${state.petTab === key ? 'active' : ''}">${label}${key === 'health' ? `<span>${state.data.healthLogs.filter((h) => h.petId === pet.id).length}</span>` : ''}</button>`,
+              `<button type="button" data-pet-tab="${key}" class="${state.petTab === key ? 'active' : ''}">${label}${key === 'health' ? `<span>${state.data.healthLogs.filter((h) => h.petId === pet.id).length}</span>` : key === 'media' ? `<span>${state.data.petMedia.filter((item) => item.petId === pet.id).length}</span>` : ''}</button>`,
           )
           .join('')}</div><div class="pet-tab-content">${petContent(pet)}</div></section></div>`
       : `<section class="panel">${empty(state.search || state.petSpecies !== 'all' ? 'No companions found' : 'Their story starts here', state.search ? 'Try another name or clear the filters.' : 'Add their name, a favorite photo, and a few details. We’ll keep the rest together.', !staff && !state.search ? button('Add your first pet', 'pet-add', 'plus') : '')}</section>`
@@ -50,6 +52,7 @@ export function pets() {
 }
 
 function petContent(pet) {
+  if (state.petTab === 'media') return petMediaContent(pet);
   const apps = state.data.appointments.filter((a) => (a.petIds || [a.petId]).includes(pet.id));
   const logs = state.data.healthLogs
     .filter((h) => h.petId === pet.id)
