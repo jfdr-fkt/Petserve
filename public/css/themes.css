@@ -66,103 +66,42 @@
   background: #893d36;
   color: #ffffff;
 }
-.theme-options {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  padding: 0 26px 26px;
+.account-preferences {
+  border-top: 1px solid var(--border);
+  padding: 24px 25px;
 }
-.theme-option {
-  position: relative;
-  padding: 18px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  text-align: left;
+.account-preferences h2 {
+  font-size: var(--text-heading);
+  margin-bottom: 18px;
 }
-.theme-option.selected {
-  border-color: var(--selected-border);
-  box-shadow: 0 0 0 1px var(--selected-border);
-}
-.theme-option strong,
-.theme-option small {
-  display: block;
-}
-.theme-option strong {
-  margin-top: 14px;
-}
-.theme-option small {
-  color: var(--muted);
-  font-size: var(--text-sm);
-  margin-top: 6px;
-}
-.theme-option > svg {
-  position: absolute;
-  right: 16px;
-  top: 20px;
-  color: var(--primary);
-}
-.theme-swatch {
+.setting-row {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 20px;
+  justify-content: space-between;
 }
-.theme-swatch i {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1px solid #8291a555;
+.setting-row label {
+  display: block;
+  font-size: var(--text-base);
+  font-weight: 600;
 }
-.theme-light i:nth-child(1) {
-  background: #ffffff;
+.setting-row p {
+  font-size: var(--text-xs);
+  margin-top: 4px;
 }
-.theme-light i:nth-child(2) {
-  background: #315f86;
+.setting-row select {
+  width: 185px;
+  min-height: 48px;
+  flex-shrink: 0;
 }
-.theme-light i:nth-child(3) {
-  background: #f1c866;
-}
-.theme-dark i:nth-child(1) {
-  background: #141e29;
-}
-.theme-dark i:nth-child(2) {
-  background: #95bfe8;
-}
-.theme-dark i:nth-child(3) {
-  background: #e8c878;
-}
-.theme-sage i:nth-child(1) {
-  background: #fffefa;
-}
-.theme-sage i:nth-child(2) {
-  background: #426c51;
-}
-.theme-sage i:nth-child(3) {
-  background: #e2c376;
-}
-.theme-system i:nth-child(1) {
-  background: linear-gradient(90deg, #ffffff 50%, #141e29 50%);
-}
-.theme-system i:nth-child(2) {
-  background: #829ab3;
-}
-.theme-system i:nth-child(3) {
-  background: #d9bf82;
-}
-.appearance-panel {
-  margin-top: 24px;
-}
-@media (max-width: 950px) {
-  .theme-options {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 450px) {
-  .theme-options {
-    padding: 0 18px 18px;
+@media (max-width: 500px) {
+  .setting-row {
+    align-items: stretch;
+    flex-direction: column;
     gap: 12px;
   }
-  .theme-option {
-    padding: 14px;
+  .setting-row select {
+    width: 100%;
   }
 }
 @media print {

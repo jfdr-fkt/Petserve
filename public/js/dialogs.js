@@ -4,6 +4,7 @@ import { escapeHTML as e, money, dateLabel, timeLabel, todayManila } from './uti
 import { slotPicker } from './views/booking.js';
 import { communityDialog } from './community-dialogs.js';
 import { paymentDialog } from './payment-dialogs.js';
+import { shiftDialog } from './shift-schedule.js';
 
 export function dialogContent() {
   if (!state.dialog) return '';
@@ -16,7 +17,8 @@ export function dialogContent() {
     label = 'Save changes',
     form = type,
     wide = false;
-  const community = communityDialog(type, id, d) || paymentDialog(type, id, d);
+  const community =
+    communityDialog(type, id, d) || paymentDialog(type, id, d) || shiftDialog(type, id, d);
   if (community) {
     ({ title, description, content, label } = community);
   } else if (type === 'pet') {

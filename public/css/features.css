@@ -199,21 +199,17 @@
   color: var(--muted);
   font-size: var(--text-xs);
 }
-.btn,
-.icon-button,
-.pet-option,
-.service-option,
-.theme-option {
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    transform 160ms ease,
-    box-shadow 160ms ease;
+.shift-panel {
+  margin-bottom: 24px;
 }
-.btn:active:not(:disabled),
-.pet-option:active,
-.theme-option:active {
-  transform: scale(0.98);
+.shift-notes {
+  font-size: var(--text-sm);
+  margin-top: 8px;
+  white-space: pre-line;
+}
+.shift-upcoming-title {
+  padding: 18px 24px 0;
+  font-size: var(--text-base);
 }
 @media (max-width: 950px) {
   .chat-workspace {
@@ -249,5 +245,12 @@
   }
   .chat-composer > small {
     grid-column: 1/-1;
+  }
+  .shift-panel .panel-header,
+  .shift-panel .payment-row {
+    flex-wrap: wrap;
+  }
+  .shift-panel .payment-row .actions {
+    margin-left: auto;
   }
 }

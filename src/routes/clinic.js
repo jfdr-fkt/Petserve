@@ -31,7 +31,7 @@ module.exports = async ({ req, res, pathname, url, db, user, persist }) => {
     return true;
   }
   if (pathname === '/api/schedule' && req.method === 'PATCH') {
-    requireUser(user, ['staff', 'admin']);
+    requireUser(user, 'admin');
     requireJson(req);
     const data = await readBody(req);
     if (
@@ -61,7 +61,7 @@ module.exports = async ({ req, res, pathname, url, db, user, persist }) => {
     return true;
   }
   if (pathname === '/api/schedule/blocks' && req.method === 'POST') {
-    requireUser(user, ['staff', 'admin']);
+    requireUser(user, 'admin');
     requireJson(req);
     const data = await readBody(req);
     if (
@@ -100,7 +100,7 @@ module.exports = async ({ req, res, pathname, url, db, user, persist }) => {
   }
   const block = /^\/api\/schedule\/blocks\/([a-f0-9-]+)$/.exec(pathname);
   if (block && req.method === 'DELETE') {
-    requireUser(user, ['staff', 'admin']);
+    requireUser(user, 'admin');
     db.schedule.blocked = db.schedule.blocked.filter((b) => b.id !== block[1]);
     persist();
     send(res, 200, { ok: true });

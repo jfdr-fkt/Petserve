@@ -41,70 +41,6 @@
   line-height: 1.9;
   margin-top: 20px;
 }
-.auth-art {
-  height: 270px;
-  position: relative;
-  margin-top: 22px;
-}
-.art-circle {
-  width: 250px;
-  height: 250px;
-  background: var(--highlight);
-  border-radius: 50%;
-  position: absolute;
-  left: 65px;
-  bottom: 5px;
-}
-.art-dog {
-  position: absolute;
-  width: 175px;
-  border-radius: 50%;
-  left: 70px;
-  bottom: 55px;
-  transform: rotate(-9deg);
-  border: 8px solid var(--surface);
-}
-.art-cat {
-  position: absolute;
-  width: 130px;
-  border-radius: 50%;
-  left: 220px;
-  bottom: 27px;
-  transform: rotate(9deg);
-  border: 7px solid var(--surface);
-}
-.art-note {
-  position: absolute;
-  left: 0;
-  bottom: 1px;
-  background: var(--surface);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 15px 22px;
-  border-radius: 13px;
-  box-shadow: 0 10px 30px #4252320d;
-  transform: rotate(-3deg);
-}
-.art-note > svg {
-  color: var(--primary);
-  background: var(--sage);
-  box-sizing: content-box;
-  padding: 7px;
-  border-radius: 50%;
-  width: 14px;
-  height: 14px;
-}
-.art-note strong {
-  display: block;
-  font-size: var(--text-sm);
-}
-.art-note small {
-  display: block;
-  color: var(--muted);
-  font-size: var(--text-xs);
-  margin-top: 2px;
-}
 .story-footer {
   font-size: var(--text-sm);
   color: var(--muted);
@@ -117,11 +53,11 @@
   padding: 50px 35px;
 }
 .auth-card {
-  max-width: 345px;
+  max-width: 440px;
   width: 100%;
 }
 .auth-card > h2 {
-  font-size: 33px;
+  font-size: 40px;
   margin: 12px 0;
 }
 .auth-card > p {
@@ -137,7 +73,11 @@
 }
 .auth-card form .btn {
   margin-top: 6px;
-  min-height: 45px;
+  min-height: 54px;
+}
+.auth-card .field input {
+  min-height: 54px;
+  font-size: var(--text-base);
 }
 .demo-accounts {
   margin-top: 25px;

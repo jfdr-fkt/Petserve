@@ -102,10 +102,11 @@ async function seedDatabase(file) {
 }
 
 async function migrate(db) {
-  db.version = 4;
+  db.version = 5;
   db.healthLogs ||= [];
   db.services ||= SERVICES.map((service) => ({ ...service }));
   db.schedule ||= { weekdays: [0, 6], timeSlots: require('./config').TIME_SLOTS, blocked: [] };
+  db.shifts ||= [];
   db.serviceRecords ||= [];
   db.feedback ||= [];
   db.gallery ||= [];

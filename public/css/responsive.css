@@ -222,10 +222,6 @@
   .story-main h1 {
     font-size: 42px;
   }
-  .auth-art {
-    transform: scale(0.85);
-    transform-origin: left center;
-  }
 }
 @media (max-width: 720px) {
   .app-shell {
@@ -377,9 +373,6 @@
   }
   .story-main h1 {
     font-size: 39px;
-  }
-  .story-main h1 br:nth-of-type(2) {
-    display: none;
   }
   .story-main > p {
     max-width: 400px;
@@ -727,6 +720,27 @@
   }
   .topbar .topbar-right {
     gap: 8px;
+  }
+}
+@media (min-width: 721px) and (max-height: 820px) {
+  .auth-story {
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
+  .auth-story > .brand {
+    margin-bottom: 36px;
+  }
+  .story-main h1 {
+    font-size: clamp(42px, 3.6vw, 52px);
+  }
+  .story-main > p {
+    max-width: 420px;
+  }
+  .auth-art .pet-scene {
+    max-height: 250px;
+  }
+  .story-footer {
+    margin-top: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -41,6 +41,10 @@ const { manilaNow } = require('../src/helpers');
     if (page.viewportSize().width <= 720) await page.locator('.mobile-menu-toggle').click();
     await page.locator(`.side-nav [data-view="${view}"]`).click();
     await page.locator(`.side-nav [data-view="${view}"].active`).waitFor();
+    if (page.viewportSize().width <= 720)
+      await page.waitForFunction(
+        () => document.querySelector('.sidebar').getBoundingClientRect().right <= 1,
+      );
   };
   const submit = async (page) => {
     await page.locator('#modal-root [type=submit]').click();
@@ -162,7 +166,13 @@ const { manilaNow } = require('../src/helpers');
     await customer.locator('#chat-text').fill('');
     await capture(customer, 'customer-chat.png');
     await nav(customer, 'account');
-    await customer.locator('[data-action="theme-select"][data-theme="dark"]').click();
+    const draftName = 'An unsaved profile name';
+    await customer.locator('form[data-form="account"] [name=name]').fill(draftName);
+    await customer.locator('#theme-select').selectOption('dark');
+    assert.equal(
+      await customer.locator('form[data-form="account"] [name=name]').inputValue(),
+      draftName,
+    );
     assert.equal(await customer.locator('html').getAttribute('data-theme'), 'dark');
     await customer.reload();
     assert.equal(await customer.locator('html').getAttribute('data-theme'), 'dark');
@@ -171,9 +181,9 @@ const { manilaNow } = require('../src/helpers');
     await nav(customer, 'book');
     await capture(customer, 'dark-booking.png');
     await nav(customer, 'account');
-    await customer.locator('[data-action="theme-select"][data-theme="sage"]').click();
+    await customer.locator('#theme-select').selectOption('sage');
     await capture(customer, 'sage-account.png');
-    await customer.locator('[data-action="theme-select"][data-theme="system"]').click();
+    await customer.locator('#theme-select').selectOption('system');
     await customer.emulateMedia({ colorScheme: 'dark' });
     await customer.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
     await customer.emulateMedia({ colorScheme: 'light' });
@@ -184,12 +194,26 @@ const { manilaNow } = require('../src/helpers');
       await customer.locator('#main-content').evaluate((el) => getComputedStyle(el).transform),
       'none',
     );
+    // Reduced motion also stops the decorative loop and skips the welcome scene.
+    await customer.locator('.profile-mini [data-action="logout"]').click();
+    await customer.locator('form[data-form="auth"]').waitFor();
+    assert.equal(
+      await customer.locator('.scene-dog').evaluate((el) => getComputedStyle(el).animationName),
+      'none',
+    );
+    await login(customer, 'customer');
+    assert.equal(await customer.locator('.login-welcome').count(), 0);
+    await nav(customer, 'pets');
+    assert.equal(
+      await customer.locator('#main-content').evaluate((el) => el.getAnimations().length),
+      0,
+    );
     await customer.setViewportSize({ width: 390, height: 844 });
     for (const view of ['book', 'payments', 'chat', 'account']) {
       await nav(customer, view);
       await noOverflow(customer, `Customer ${view}`);
     }
-    await customer.locator('[data-action="theme-select"][data-theme="dark"]').click();
+    await customer.locator('#theme-select').selectOption('dark');
     await nav(customer, 'chat');
     await customer.locator('.chat-message').first().waitFor();
     await capture(customer, 'dark-chat-mobile.png');

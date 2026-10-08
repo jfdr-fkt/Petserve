@@ -100,7 +100,8 @@ test('role management, private records and disabled sessions are enforced', asyn
 test('editable availability and durations protect overlapping resources and keep booking snapshots', async (t) => {
   const { request, login, date } = await fixture(t);
   const customer = await login('customer'),
-    staff = await login('staff');
+    staff = await login('staff'),
+    admin = await login('admin');
   const pet = (await request('/api/bootstrap', customer)).data.pets[0];
   assert.equal(
     (await request('/api/schedule', customer, 'PATCH', { weekdays: [0, 6], timeSlots: ['10:00'] }))
@@ -109,7 +110,7 @@ test('editable availability and durations protect overlapping resources and keep
   );
   assert.equal(
     (
-      await request('/api/schedule', staff, 'PATCH', {
+      await request('/api/schedule', admin, 'PATCH', {
         weekdays: [0, 6],
         timeSlots: ['10:00', '10:30', '11:00', '13:00'],
       })
@@ -198,7 +199,7 @@ test('editable availability and durations protect overlapping resources and keep
   assert.equal(saved.duration, 90);
   assert.equal(
     (
-      await request('/api/schedule/blocks', staff, 'POST', {
+      await request('/api/schedule/blocks', admin, 'POST', {
         date,
         time: '11:00',
         resource: 'groomer',
@@ -207,7 +208,7 @@ test('editable availability and durations protect overlapping resources and keep
     409,
   );
   assert.equal(
-    (await request('/api/schedule', staff, 'PATCH', { weekdays: [0], timeSlots: ['10:00'] }))
+    (await request('/api/schedule', admin, 'PATCH', { weekdays: [0], timeSlots: ['10:00'] }))
       .status,
     409,
   );
@@ -223,7 +224,7 @@ test('editable availability and durations protect overlapping resources and keep
   );
   assert.equal(
     (
-      await request('/api/schedule/blocks', staff, 'POST', {
+      await request('/api/schedule/blocks', admin, 'POST', {
         date,
         time: '10:00',
         resource: 'groomer',
@@ -237,6 +238,124 @@ test('editable availability and durations protect overlapping resources and keep
     ).available,
     false,
   );
+});
+
+test('only administrators edit clinic schedules and shifts; employees see their own hours', async (t) => {
+  const { request, login, date, dbFile } = await fixture(t);
+  const customer = await login('customer'),
+    staff = await login('staff'),
+    admin = await login('admin');
+  const employee = (await request('/api/bootstrap', staff)).data.user;
+  const initialSchedule = (await request('/api/bootstrap', staff)).data.schedule;
+  assert.equal(
+    (await request('/api/schedule', staff, 'PATCH', { weekdays: [1], timeSlots: ['09:00'] }))
+      .status,
+    403,
+  );
+  assert.equal(
+    (await request('/api/schedule/blocks', staff, 'POST', { date, resource: 'groomer' })).status,
+    403,
+  );
+  assert.deepEqual((await request('/api/bootstrap', staff)).data.schedule, initialSchedule);
+  const blocked = await request('/api/schedule/blocks', admin, 'POST', {
+    date,
+    resource: 'groomer',
+    time: '13:00',
+    reason: 'Team meeting',
+  });
+  assert.equal(blocked.status, 201);
+  const blockId = blocked.data.schedule.blocked[0].id;
+  assert.equal((await request(`/api/schedule/blocks/${blockId}`, staff, 'DELETE')).status, 403);
+  assert.equal((await request('/api/bootstrap', staff)).data.schedule.blocked.length, 1);
+  assert.equal((await request(`/api/schedule/blocks/${blockId}`, admin, 'DELETE')).status, 200);
+  assert.equal(
+    (
+      await request('/api/schedule', admin, 'PATCH', {
+        weekdays: [0, 6],
+        timeSlots: ['10:00', '11:00', '13:00'],
+      })
+    ).status,
+    200,
+  );
+
+  const hours = {
+    employeeId: employee.id,
+    date,
+    start: '09:00',
+    end: '17:00',
+    notes: 'Morning grooming team',
+  };
+  assert.equal((await request('/api/schedule/shifts', staff, 'POST', hours)).status, 403);
+  assert.equal((await request('/api/schedule/shifts', customer, 'POST', hours)).status, 403);
+  assert.equal(
+    (await request('/api/schedule/shifts', admin, 'POST', { ...hours, end: '08:00' })).status,
+    400,
+  );
+  assert.equal((await request('/api/schedule/shifts', admin, 'POST', hours)).status, 201);
+  assert.equal(
+    (
+      await request('/api/schedule/shifts', admin, 'POST', {
+        ...hours,
+        start: '16:00',
+        end: '18:00',
+      })
+    ).status,
+    409,
+  );
+  const ownShift = (await request('/api/bootstrap', staff)).data.shifts[0];
+  assert.equal(ownShift.employeeId, employee.id);
+  assert.equal(ownShift.notes, hours.notes);
+  assert.deepEqual((await request('/api/bootstrap', customer)).data.shifts, []);
+  const other = await request('/api/auth/register', '', 'POST', {
+    name: 'Other employee',
+    email: 'other-employee@example.test',
+    password: 'Petserve123!',
+  });
+  await request(`/api/users/${other.data.user.id}`, admin, 'PATCH', {
+    role: 'staff',
+    disabled: false,
+  });
+  assert.equal(
+    (
+      await request('/api/schedule/shifts', admin, 'POST', {
+        ...hours,
+        employeeId: other.data.user.id,
+      })
+    ).status,
+    201,
+  );
+  assert.equal((await request('/api/bootstrap', admin)).data.shifts.length, 2);
+  assert.deepEqual(
+    (await request('/api/bootstrap', staff)).data.shifts.map((shift) => shift.id),
+    [ownShift.id],
+  );
+  const shiftRoute = `/api/schedule/shifts/${ownShift.id}`;
+  assert.equal((await request(shiftRoute, staff, 'PATCH', { ...hours, end: '16:00' })).status, 403);
+  assert.equal((await request(shiftRoute, staff, 'DELETE')).status, 403);
+  assert.equal((await request('/api/bootstrap', staff)).data.shifts[0].end, '17:00');
+  assert.equal((await request(shiftRoute, admin, 'PATCH', { ...hours, end: '16:00' })).status, 200);
+  assert.equal((await request('/api/bootstrap', staff)).data.shifts[0].end, '16:00');
+  assert.equal(
+    JSON.parse(fs.readFileSync(dbFile, 'utf8')).shifts.find((shift) => shift.id === ownShift.id)
+      .end,
+    '16:00',
+  );
+
+  const pet = (await request('/api/bootstrap', customer)).data.pets[0];
+  const visit = await request('/api/appointments', customer, 'POST', {
+    petId: pet.id,
+    serviceId: 'consultation',
+    date,
+    time: '10:00',
+  });
+  assert.equal(visit.status, 201);
+  const reschedule = `/api/appointments/${visit.data.appointment.id}/reschedule`;
+  assert.equal((await request(reschedule, staff, 'PATCH', { date, time: '11:00' })).status, 403);
+  assert.equal((await request('/api/bootstrap', staff)).data.appointments[0].time, '10:00');
+  assert.equal((await request(reschedule, admin, 'PATCH', { date, time: '11:00' })).status, 200);
+  assert.equal((await request(reschedule, customer, 'PATCH', { date, time: '13:00' })).status, 200);
+  assert.equal((await request(shiftRoute, admin, 'DELETE')).status, 200);
+  assert.deepEqual((await request('/api/bootstrap', staff)).data.shifts, []);
 });
 
 test('service records, payment receipts, filtered reports and pet editing survive persistence', async (t) => {

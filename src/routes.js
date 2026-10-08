@@ -7,6 +7,7 @@ const handlers = [
   require('./routes/pets'),
   require('./routes/appointments'),
   require('./routes/clinic'),
+  require('./routes/shifts'),
   require('./routes/community'),
   require('./routes/transfers'),
   require('./routes/chat'),
@@ -47,6 +48,12 @@ function createHandler(db, sessions, persist, uploadsDir) {
           services: db.services,
           timeSlots: db.schedule.timeSlots,
           schedule: user ? db.schedule : null,
+          shifts:
+            user?.role === 'admin'
+              ? db.shifts
+              : user?.role === 'staff'
+                ? db.shifts.filter((shift) => shift.employeeId === user.id)
+                : [],
           pets,
           healthLogs: db.healthLogs.filter((h) => petIds.has(h.petId)),
           appointments: user

@@ -96,6 +96,7 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
     return true;
   }
   if (match[2] === 'reschedule' && req.method === 'PATCH') {
+    requireUser(user, ['customer', 'admin']);
     requireJson(req);
     if (!['pending', 'confirmed'].includes(item.status) || paid)
       throw httpError(409, 'Only unpaid upcoming visits can be rescheduled.');

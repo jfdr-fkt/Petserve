@@ -15,7 +15,8 @@ import { todayManila } from './js/utils.js';
 import { createInterface } from '../client/interface.jsx';
 import { chat } from './js/views/chat.js';
 import { startChat, stopChat, sendChat, searchChat } from './js/chat.js';
-import { applyTheme, themes } from './js/themes.js';
+import { applyTheme } from './js/themes.js';
+import { loginWelcome } from './js/login-welcome.js';
 import { walletDetails } from './js/payment-dialogs.js';
 
 const root = document.querySelector('#app');
@@ -47,10 +48,7 @@ function render() {
     return;
   }
   if (!navigation().some(([view]) => view === state.view)) state.view = 'overview';
-  ui.workspace(
-    shell(views[state.view]()),
-    `${state.view}${state.view === 'pets' ? `-${state.selectedPet}-${state.petTab}` : ''}`,
-  );
+  ui.workspace(shell(views[state.view]()));
   if (!state.dialog) renderDialog();
 }
 function renderDialog(focus = false) {
@@ -109,7 +107,7 @@ async function navigate(view) {
   if (view === 'reports') await loadReport();
   if (view === 'chat') startChat();
   document.querySelector('#main-content')?.focus({ preventScroll: true });
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo(0, 0);
 }
 function setMobileMenu(open) {
   state.mobileMenuOpen = open;
@@ -254,15 +252,20 @@ async function handleClick(event) {
     id = button.dataset.id;
   if (!action) return;
   try {
-    if (action === 'theme-select' || action === 'theme-cycle') {
-      applyTheme(
-        action === 'theme-select'
-          ? button.dataset.theme
-          : themes[(themes.findIndex(([name]) => name === state.theme) + 1) % themes.length][0],
-      );
-      if (state.view === 'account') render();
-      return;
-    }
+    if (
+      [
+        'availability',
+        'block-add',
+        'block-remove',
+        'shift-add',
+        'shift-edit',
+        'shift-remove',
+      ].includes(action) &&
+      state.data.user.role !== 'admin'
+    )
+      throw new Error('Only administrators can change the schedule.');
+    if (action === 'reschedule' && state.data.user.role === 'staff')
+      throw new Error('Ask your administrator to reschedule this visit.');
     if (['online-payment', 'transfer-review', 'payment-settings'].includes(action)) {
       openDialog(action, id);
       return;
@@ -460,6 +463,14 @@ async function handleClick(event) {
       openDialog('availability');
       return;
     }
+    if (action === 'shift-add' || action === 'shift-edit') {
+      openDialog('shift', id, id ? state.data.shifts.find((shift) => shift.id === id) : {});
+      return;
+    }
+    if (action === 'shift-remove') {
+      openDialog('shift-remove', id);
+      return;
+    }
     if (action === 'block-add') {
       openDialog('block');
       return;
@@ -546,6 +557,10 @@ root.addEventListener('input', handleInput);
 modalRoot.addEventListener('input', handleInput);
 async function handleChange(event) {
   const target = event.target;
+  if (target.id === 'theme-select') {
+    applyTheme(target.value);
+    return;
+  }
   if (target.name === 'method' && state.dialog?.type === 'online-payment') {
     state.draft.method = target.value;
     const details = document.querySelector('#wallet-details');
@@ -690,15 +705,23 @@ async function handleSubmit(event) {
         await api(`/api/gallery/${id}`, 'DELETE');
         message = 'Gallery post removed.';
         break;
-      case 'auth':
+      case 'auth': {
         await api(
           state.authMode === 'register' ? '/api/auth/register' : '/api/auth/login',
           'POST',
           values,
         );
         state.view = 'overview';
-        message = 'Welcome to your care space.';
-        break;
+        const [data] = await Promise.allSettled([api('/api/bootstrap'), loginWelcome(root)]);
+        if (data.status === 'rejected') throw data.reason;
+        state.data = data.value;
+        state.mobileMenuOpen = false;
+        history.replaceState(null, '', '#overview');
+        render();
+        document.querySelector('#main-content')?.focus({ preventScroll: true });
+        window.scrollTo(0, 0);
+        return;
+      }
       case 'pet': {
         const result = await api(id ? `/api/pets/${id}` : '/api/pets', id ? 'PATCH' : 'POST', {
           ...values,
@@ -765,6 +788,18 @@ async function handleSubmit(event) {
       case 'block':
         await api('/api/schedule/blocks', 'POST', values);
         message = 'Time blocked for this care team.';
+        break;
+      case 'shift':
+        await api(
+          id ? `/api/schedule/shifts/${id}` : '/api/schedule/shifts',
+          id ? 'PATCH' : 'POST',
+          values,
+        );
+        message = 'Employee shift saved.';
+        break;
+      case 'shift-remove':
+        await api(`/api/schedule/shifts/${id}`, 'DELETE');
+        message = 'Employee shift removed.';
         break;
       case 'service':
         await api(`/api/services/${id}`, 'PATCH', {

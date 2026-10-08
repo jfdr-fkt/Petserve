@@ -35,6 +35,10 @@ const { manilaNow } = require('../src/helpers');
     }
     await page.locator(`.side-nav [data-view="${view}"]`).click();
     await page.locator('#main-content').waitFor();
+    if (page.viewportSize().width <= 720)
+      await page.waitForFunction(
+        () => document.querySelector('.sidebar').getBoundingClientRect().right <= 1,
+      );
     if (view === 'reports') await page.locator('.status-bars').waitFor();
   };
   const login = async (role) => {
@@ -42,7 +46,17 @@ const { manilaNow } = require('../src/helpers');
     await page.locator('.demo-accounts summary').click();
     await page.locator(`[data-fill="${role}"]`).click();
     await page.locator('form[data-form="auth"] [type=submit]').click();
+    await page.locator('.login-welcome').waitFor();
+    assert.equal(await page.locator('#app').evaluate((el) => el.inert), true);
+    if (role === 'customer') {
+      await page.screenshot({ path: path.join(artifacts, 'login-welcome.png') });
+      await page.locator('.login-welcome button').click();
+    } else if (role === 'admin') {
+      await page.keyboard.press('Escape');
+    }
     await page.locator('.side-nav').waitFor();
+    assert.equal(await page.locator('.login-welcome').count(), 0);
+    assert.equal(await page.locator('#app').evaluate((el) => el.inert), false);
   };
   const logout = async () => {
     await page
@@ -67,6 +81,10 @@ const { manilaNow } = require('../src/helpers');
   };
   try {
     await page.goto(base);
+    await page.locator('.pet-scene-play').waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    assert.ok((await page.locator('.auth-card').boundingBox()).width >= 430);
+    assert.ok((await page.locator('[name=email]').boundingBox()).height >= 54);
     await page.screenshot({ path: path.join(artifacts, 'sign-in.png'), fullPage: true });
     await login('customer');
     await page.locator('[data-action="sidebar-toggle"]').click();
@@ -87,6 +105,14 @@ const { manilaNow } = require('../src/helpers');
     assert.ok(await page.evaluate(() => document.fonts.check('16px "Nunito Sans"')));
     await page.screenshot({ path: path.join(artifacts, 'customer-overview.png'), fullPage: true });
     await clickNav('pets');
+    assert.equal(
+      await page.locator('#main-content').evaluate((el) => getComputedStyle(el).transform),
+      'none',
+    );
+    assert.equal(
+      await page.locator('#main-content').evaluate((el) => el.getAnimations().length),
+      0,
+    );
     await page.locator('[data-action="pet-add"]').first().click();
     await page.locator('#modal-root [name=name]').fill('Luna');
     await page.locator('#modal-root [name=species]').selectOption('Cat');
@@ -216,9 +242,14 @@ const { manilaNow } = require('../src/helpers');
     await page.screenshot({ path: path.join(artifacts, 'shared-gallery.png'), fullPage: true });
     await clickNav('schedule');
     await page.screenshot({ path: path.join(artifacts, 'staff-schedule.png'), fullPage: true });
-    await page.locator('[data-action="availability"]').click();
-    await page.locator('input[name=weekday][value="1"]').check();
-    await submitDialog();
+    assert.equal(
+      await page
+        .locator(
+          '[data-action="availability"], [data-action="block-add"], [data-action="block-remove"]',
+        )
+        .count(),
+      0,
+    );
     await clickNav('services');
     await page.locator('[data-action="service-edit"]').first().click();
     await page.locator('#modal-root [name=price]').fill('550');
@@ -264,6 +295,48 @@ const { manilaNow } = require('../src/helpers');
     assert.equal(await page.locator('.main-shell').evaluate((el) => el.inert), false);
     await logout();
     await login('admin');
+    await clickNav('schedule');
+    await page.locator('[data-action="availability"]').click();
+    await page.locator('input[name=weekday][value="1"]').check();
+    await submitDialog();
+    await page.locator('[data-action="shift-add"]').click();
+    const employeeId = await page
+      .locator('#modal-root [name=employeeId] option')
+      .nth(1)
+      .getAttribute('value');
+    await page.locator('#modal-root [name=employeeId]').selectOption(employeeId);
+    await page.locator('#modal-root [name=notes]').fill('Grooming team — morning care.');
+    await submitDialog();
+    assert.match(await page.locator('.shift-panel').textContent(), /9:00 AM.*5:00 PM/);
+    await page.locator('[data-action="shift-edit"]').click();
+    await page.locator('#modal-root [name=end]').fill('16:00');
+    await submitDialog();
+    await noOverflow('Administrator schedule mobile');
+    await logout();
+    await login('staff');
+    await clickNav('schedule');
+    assert.match(
+      await page.locator('.shift-panel').textContent(),
+      /Your assigned shift.*9:00 AM.*4:00 PM/s,
+    );
+    assert.equal(
+      await page
+        .locator(
+          '[data-action="shift-add"], [data-action="shift-edit"], [data-action="shift-remove"], [data-action="availability"], [data-action="block-add"]',
+        )
+        .count(),
+      0,
+    );
+    await page.screenshot({
+      path: path.join(artifacts, 'employee-shifts-mobile.png'),
+      fullPage: true,
+    });
+    await logout();
+    await login('admin');
+    await clickNav('schedule');
+    await page.locator('[data-action="shift-remove"]').click();
+    await submitDialog();
+    assert.match(await page.locator('.shift-panel').textContent(), /No shifts assigned/);
     await clickNav('accounts');
     await page.locator('[data-action="user-edit"]').first().click();
     await page.keyboard.press('Escape');
@@ -325,7 +398,7 @@ const { manilaNow } = require('../src/helpers');
     await page.pdf({ path: path.join(artifacts, 'receipt.pdf'), format: 'A4' });
     assert.deepEqual(errors, [], 'No browser or CSP errors');
     console.log(
-      'Browser checks passed: all roles, collapsible navigation, photos, video playback, shared gallery, feedback and replies, pets, booking, services, payments, receipts, reports, and mobile layouts.',
+      'Browser checks passed: all roles, pet login loop and welcome/skip/Escape, immediate navigation, admin shift assignment/edit/removal, employee read-only shifts, collapsible navigation, gallery photo/video playback, feedback, pets, booking, services, payments, receipts, reports, and mobile layouts.',
     );
     console.log(`Screenshots: ${artifacts}`);
   } finally {

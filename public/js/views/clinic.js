@@ -1,14 +1,16 @@
 import { appearance } from '../themes.js';
+import { shiftPanel } from '../shift-schedule.js';
 import { state } from '../state.js';
 import { heading, field, icon, button, stats, statusBadge, empty } from '../components.js';
 import { escapeHTML as e, dateLabel, todayManila, timeLabel, money } from '../utils.js';
 
 export function schedule() {
+  const admin = state.data.user.role === 'admin';
   const date = state.scheduleDate || todayManila(),
     apps = state.data.appointments.filter(
       (a) => a.date === date && ['confirmed', 'pending', 'completed'].includes(a.status),
     );
-  return `${heading('A calmer calendar for the whole team', 'Schedule', 'One place for daily visits, care teams, and available times.', button('Manage availability', 'availability', 'settings', 'outline'))}<section class="panel schedule-panel"><div class="panel-header"><div><h2>${dateLabel(date)}</h2><p>${apps.filter((a) => a.status === 'confirmed').length} confirmed · ${apps.filter((a) => a.status === 'pending').length} awaiting review</p></div><div class="actions"><button type="button" class="btn btn-outline" data-action="schedule-today">Today</button><input type="date" id="schedule-date" value="${date}" aria-label="Schedule date"></div></div><div class="schedule-legend"><span><i class="legend-dot sage"></i>Grooming team</span><span><i class="legend-dot lavender"></i>Veterinary team</span><span>All times · Asia/Manila</span></div><div class="table-wrap"><table class="schedule-table"><thead><tr><th>Time</th><th>Grooming team</th><th>Veterinary team</th></tr></thead><tbody>${state.data.timeSlots
+  return `${heading('A calmer calendar for the whole team', 'Schedule', admin ? 'Manage daily visits, care teams, and available times.' : 'View your clinic workdays and care team visits. Your administrator manages schedule changes.', admin ? button('Manage availability', 'availability', 'settings', 'outline') : '')}${shiftPanel(date, admin)}<section class="panel schedule-panel"><div class="panel-header"><div><h2>${dateLabel(date)}</h2><p>${apps.filter((a) => a.status === 'confirmed').length} confirmed · ${apps.filter((a) => a.status === 'pending').length} awaiting review</p></div><div class="actions"><button type="button" class="btn btn-outline" data-action="schedule-today">Today</button><input type="date" id="schedule-date" value="${date}" aria-label="Schedule date"></div></div><div class="schedule-legend"><span><i class="legend-dot sage"></i>Grooming team</span><span><i class="legend-dot lavender"></i>Veterinary team</span><span>All times · Asia/Manila</span></div><div class="table-wrap"><table class="schedule-table"><thead><tr><th>Time</th><th>Grooming team</th><th>Veterinary team</th></tr></thead><tbody>${state.data.timeSlots
     .map(
       (time) =>
         `<tr><th>${timeLabel(time)}</th>${['groomer', 'veterinarian']
@@ -26,7 +28,7 @@ export function schedule() {
     )
     .join(
       '',
-    )}</tbody></table></div></section><section class="panel blocked-panel"><div class="panel-header"><div><h2>Time away from the calendar</h2><p>Blocked times keep new visits from being booked.</p></div>${button('Block time', 'block-add', 'plus', 'soft')}</div>${state.data.schedule.blocked.length ? state.data.schedule.blocked.map((b) => `<div class="payment-row"><div><strong>${b.resource === 'groomer' ? 'Grooming team' : 'Veterinary team'} · ${dateLabel(b.date)}</strong><small>${b.time ? timeLabel(b.time) : 'All day'}${b.reason ? ` · ${e(b.reason)}` : ''}</small></div>${button('Reopen', 'block-remove', '', 'outline', `data-id="${b.id}"`)}</div>`).join('') : '<p class="panel-empty-note">No blocked times. Add time off or a temporary closure here.</p>'}</section>`;
+    )}</tbody></table></div></section><section class="panel blocked-panel"><div class="panel-header"><div><h2>Time away from the calendar</h2><p>Blocked times keep new visits from being booked.</p></div>${admin ? button('Block time', 'block-add', 'plus', 'soft') : ''}</div>${state.data.schedule.blocked.length ? state.data.schedule.blocked.map((b) => `<div class="payment-row"><div><strong>${b.resource === 'groomer' ? 'Grooming team' : 'Veterinary team'} · ${dateLabel(b.date)}</strong><small>${b.time ? timeLabel(b.time) : 'All day'}${b.reason ? ` · ${e(b.reason)}` : ''}</small></div>${admin ? button('Reopen', 'block-remove', '', 'outline', `data-id="${b.id}"`) : ''}</div>`).join('') : `<p class="panel-empty-note">${admin ? 'No blocked times. Add time off or a temporary closure here.' : 'No blocked times. Schedule changes are managed by your administrator.'}</p>`}</section>`;
 }
 
 export function services() {
@@ -39,7 +41,7 @@ export function accounts() {
 
 export function account() {
   const u = state.data.user;
-  return `${heading('Your details, close at hand', 'My account', 'Keep your name and contact number up to date.')}<div class="account-layout"><section class="panel account-form"><div class="panel-header"><div><h2>Your profile</h2><p>These details help the care team keep in touch.</p></div></div><form data-form="account">${field('Full name', 'name', u.name, { required: true, attrs: 'minlength="2" maxlength="80" autocomplete="name"' })}${field('Phone number', 'phone', u.phone, { type: 'tel', attrs: 'maxlength="30" autocomplete="tel"' })}${field('Email address', 'email', u.email, { type: 'email', attrs: 'disabled', hint: 'Your sign-in email.' })}<div class="form-error" role="alert" hidden></div><button type="submit" class="btn btn-primary">Save details</button></form></section><section class="account-aside care-note sage"><span class="icon-tile sage">${icon('pets')}</span><h2>A familiar face.<br>A happier visit.</h2><p>A current profile helps us connect your pets, appointments, and care records.</p><span class="status confirmed">${u.role === 'customer' ? 'Pet parent' : u.role === 'staff' ? 'Employee' : 'Administrator'}</span></section></div>${appearance()}`;
+  return `${heading('Your details, close at hand', 'My account', 'Keep your name and contact number up to date.')}<div class="account-layout"><section class="panel account-form"><div class="panel-header"><div><h2>Your profile</h2><p>These details help the care team keep in touch.</p></div></div><form data-form="account">${field('Full name', 'name', u.name, { required: true, attrs: 'minlength="2" maxlength="80" autocomplete="name"' })}${field('Phone number', 'phone', u.phone, { type: 'tel', attrs: 'maxlength="30" autocomplete="tel"' })}${field('Email address', 'email', u.email, { type: 'email', attrs: 'disabled', hint: 'Your sign-in email.' })}<div class="form-error" role="alert" hidden></div><button type="submit" class="btn btn-primary">Save details</button></form>${appearance()}</section><section class="account-aside care-note sage"><span class="icon-tile sage">${icon('pets')}</span><h2>A familiar face.<br>A happier visit.</h2><p>A current profile helps us connect your pets, appointments, and care records.</p><span class="status confirmed">${u.role === 'customer' ? 'Pet parent' : u.role === 'staff' ? 'Employee' : 'Administrator'}</span></section></div>`;
 }
 
 export function reports() {

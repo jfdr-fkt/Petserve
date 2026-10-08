@@ -10,13 +10,8 @@
   line-height: 1.35;
   border: 1px solid transparent;
   border-radius: 9px;
-  transition:
-    background 0.15s,
-    transform 0.15s;
+  transition: background 0.15s;
   white-space: nowrap;
-}
-.btn:hover:not(:disabled) {
-  transform: translateY(-1px);
 }
 .btn svg {
   width: 15px;
