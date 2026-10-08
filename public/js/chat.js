@@ -155,6 +155,22 @@ export async function deleteChatMessage(id) {
   await api(`/api/chat/${state.chatCustomerId}/messages/${id}`, 'DELETE');
   if (state.view === 'chat') await loadChat();
 }
+export async function deleteConversation(customerId, confirm) {
+  stopChat();
+  try {
+    await api(`/api/chat/${customerId}`, 'DELETE', { confirm });
+    if (customerId === state.chatCustomerId) {
+      state.chatMessages = [];
+      state.chatDraft = '';
+      clearChatAttachment();
+      const input = document.querySelector('#chat-text');
+      if (input) input.value = '';
+    }
+    if (state.view === 'chat') await loadChat();
+  } finally {
+    if (state.view === 'chat') startChat();
+  }
+}
 export function reportChatError(error) {
   toast(error.message, true);
 }

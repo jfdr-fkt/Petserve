@@ -39,8 +39,12 @@ const { manilaNow } = require('../src/helpers');
   };
   const nav = async (page, view) => {
     if (page.viewportSize().width <= 720) await page.locator('.mobile-menu-toggle').click();
-    await page.locator(`.side-nav [data-view="${view}"]`).click();
-    await page.locator(`.side-nav [data-view="${view}"].active`).waitFor();
+    await page
+      .locator(view === 'overview' ? '.sidebar .brand' : `.side-nav [data-view="${view}"]`)
+      .click();
+    if (view === 'overview')
+      await page.locator('.breadcrumb strong', { hasText: 'Overview' }).waitFor();
+    else await page.locator(`.side-nav [data-view="${view}"].active`).waitFor();
     if (page.viewportSize().width <= 720)
       await page.waitForFunction(
         () => document.querySelector('.sidebar').getBoundingClientRect().right <= 1,

@@ -1,7 +1,7 @@
 const identity = () => ({ tally: 0, anchor: null, timer: null, consumed: false });
 const distance = (a, b) => Math.hypot(a.x - b.clientX, a.y - b.clientY);
 
-export function composeSurface(selector, descriptors, effects) {
+export function composeSurface(selector, descriptors, effects, policy = {}) {
   const controller = new AbortController();
   const records = new Map(descriptors.map((descriptor) => [descriptor.key, identity()]));
   const options = { capture: true, signal: controller.signal };
@@ -66,15 +66,23 @@ export function composeSurface(selector, descriptors, effects) {
     (event) => {
       const element = resolve(event);
       if (!element) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
       if ([...records.values()].some((record) => record.consumed)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
         for (const record of records.values()) record.consumed = false;
         return;
       }
+      let projected = false;
       for (const descriptor of descriptors.filter((entry) => entry.mode === 'sum')) {
         const record = records.get(descriptor.key);
-        if (++record.tally >= descriptor.boundary) emit(descriptor, element);
+        if (++record.tally >= descriptor.boundary) {
+          emit(descriptor, element);
+          projected = true;
+        }
+      }
+      if (!policy.passThrough || projected) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
       }
     },
     options,

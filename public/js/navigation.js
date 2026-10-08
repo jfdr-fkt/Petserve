@@ -11,7 +11,6 @@ export function navigationGroups() {
           ['book', 'book', 'Book a visit'],
           ['appointments', 'queue', 'My appointments'],
           ['pets', 'pets', 'My pets'],
-          ['overview', 'overview', 'Overview'],
         ],
       ],
       [
@@ -46,7 +45,6 @@ export function navigationGroups() {
       [
         ['payments', 'card', 'Payments'],
         ['services', 'grooming', 'Services'],
-        ['overview', 'overview', 'Overview'],
         ['reports', 'reports', 'Reports'],
       ],
     ],

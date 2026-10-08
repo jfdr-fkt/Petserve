@@ -62,6 +62,7 @@ function serveStatic(res, pathname, req) {
     '.svg': 'image/svg+xml',
     '.woff2': 'font/woff2',
     '.mp4': 'video/mp4',
+    '.mp3': 'audio/mpeg',
   };
   const ext = path.extname(relative);
   const mime = mimeMap[ext];
@@ -72,7 +73,7 @@ function serveStatic(res, pathname, req) {
     throw httpError(404, 'Page not found.');
   }
   if (!fs.existsSync(file)) throw httpError(404, 'Page not found.');
-  if (ext === '.mp4') return require('./media').serveMedia(req, res, file, mime);
+  if (['.mp4', '.mp3'].includes(ext)) return require('./media').serveMedia(req, res, file, mime);
 
   const bytes = fs.readFileSync(file);
   res.writeHead(200, {

@@ -27,6 +27,8 @@ import { applyTheme } from './js/themes.js';
 import { loginWelcome, logoutGoodbye } from './js/session-scenes.js';
 import { walletDetails } from './js/payment-dialogs.js';
 import { careItems, careSelectionError, planPreview } from './js/booking-plan.js';
+import { chooseProfilePhoto, removeProfilePhoto } from './js/profile.js';
+import { deleteConversation } from './js/chat.js';
 import './js/experience.js';
 
 const root = document.querySelector('#app');
@@ -95,6 +97,7 @@ function closeDialog() {
 }
 async function refresh() {
   state.data = await api('/api/bootstrap');
+  if (state.authMode === 'reset' && state.resetToken) state.data.user = null;
   render();
 }
 async function finishSession(deleted = false) {
@@ -106,6 +109,10 @@ async function finishSession(deleted = false) {
     data: { user: null },
     view: 'overview',
     authMode: 'login',
+    accountPhoto: null,
+    recoveryResult: null,
+    resetToken: '',
+    resetComplete: false,
     report: null,
     reportFrom: '',
     reportTo: '',
@@ -132,6 +139,7 @@ async function finishSession(deleted = false) {
   root.querySelector('[name="email"]')?.focus({ preventScroll: true });
 }
 async function navigate(view) {
+  if (view !== 'account') state.accountPhoto = null;
   stopChat();
   setMobileMenu(false);
   closeDialog();
@@ -235,6 +243,8 @@ async function handleClick(event) {
   }
   if (button.dataset.authMode) {
     state.authMode = button.dataset.authMode;
+    state.recoveryResult = null;
+    state.resetComplete = false;
     render();
     return;
   }
@@ -383,6 +393,31 @@ async function handleClick(event) {
     }
     if (action === 'chat-message-delete') {
       openDialog('chat-delete', id);
+      return;
+    }
+    if (action === 'chat-clear') {
+      openDialog('chat-clear', state.chatCustomerId);
+      return;
+    }
+    if (action === 'account-photo-remove') {
+      removeProfilePhoto();
+      return;
+    }
+    if (action === 'password-change') {
+      openDialog('password-change');
+      return;
+    }
+    if (action === 'password-reset-link') {
+      const result = await api(`/api/users/${id}/password-reset`, 'POST', {});
+      openDialog('password-reset-link', id, result);
+      return;
+    }
+    if (action === 'reset-open') {
+      event.preventDefault();
+      state.authMode = 'reset';
+      state.resetToken = button.dataset.token;
+      history.replaceState(null, '', `#reset-password/${state.resetToken}`);
+      render();
       return;
     }
     if (action === 'account-delete') {
@@ -715,6 +750,15 @@ async function handleChange(event) {
     await importPhoto(target.files?.[0]);
     return;
   }
+  if (target.id === 'account-photo') {
+    try {
+      await chooseProfilePhoto(target.files?.[0]);
+    } catch (error) {
+      toast(error.message, true);
+      target.value = '';
+    }
+    return;
+  }
   if (target.id === 'booking-date' || target.id === 'reschedule-date') {
     state.booking.date = target.value;
     state.booking.time = '';
@@ -779,6 +823,32 @@ async function handleSubmit(event) {
         await deleteChatMessage(id);
         closeDialog();
         toast('Message deleted.');
+        return;
+      case 'chat-clear':
+        await deleteConversation(id, values.confirm === 'on');
+        closeDialog();
+        toast('Conversation deleted.');
+        return;
+      case 'password-reset-link':
+        closeDialog();
+        return;
+      case 'password-change':
+        await api('/api/account/password', 'PATCH', values);
+        message = 'Your password has been updated.';
+        break;
+      case 'forgot-password':
+        state.recoveryResult = await api('/api/auth/forgot-password', 'POST', values);
+        render();
+        return;
+      case 'reset-password':
+        await api('/api/auth/reset-password', 'POST', { ...values, token: state.resetToken });
+        state.authMode = 'login';
+        state.resetToken = '';
+        state.recoveryResult = null;
+        state.resetComplete = true;
+        state.data = { user: null };
+        history.replaceState(null, '', '#overview');
+        render();
         return;
       case 'account-delete': {
         const result = await api(id ? `/api/users/${id}` : '/api/account', 'DELETE', {
@@ -973,7 +1043,11 @@ async function handleSubmit(event) {
         message = 'Account access updated.';
         break;
       case 'account':
-        await api('/api/account', 'PATCH', values);
+        await api('/api/account', 'PATCH', {
+          ...values,
+          photoUrl: state.accountPhoto ?? state.data.user.photoUrl,
+        });
+        state.accountPhoto = null;
         message = 'Your details are up to date.';
         break;
       case 'report': {
@@ -1104,6 +1178,19 @@ document.addEventListener('keydown', (event) => {
   }
 });
 window.addEventListener('hashchange', () => {
+  const resetToken = /^#reset-password\/([a-f0-9]{64})$/.exec(location.hash)?.[1];
+  if (resetToken) {
+    stopChat();
+    clearChatAttachment();
+    closeDialog();
+    setMobileMenu(false);
+    state.authMode = 'reset';
+    state.resetToken = resetToken;
+    state.resetComplete = false;
+    state.data = { user: null };
+    render();
+    return;
+  }
   const view = location.hash.slice(1);
   if (state.data?.user && views[view]) navigate(view).catch((error) => toast(error.message, true));
 });
@@ -1129,6 +1216,11 @@ window.addEventListener('resize', () => {
   if (sidebar) sidebar.inert = window.innerWidth <= 720 && !state.mobileMenuOpen;
 });
 state.view = views[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
+const recoveryRoute = /^#reset-password\/([a-f0-9]{64})$/.exec(location.hash);
+if (recoveryRoute) {
+  state.authMode = 'reset';
+  state.resetToken = recoveryRoute[1];
+}
 refresh()
   .then(async () => {
     if (state.data.user && ['book', 'reports', 'chat'].includes(state.view))

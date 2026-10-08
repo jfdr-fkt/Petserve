@@ -15,6 +15,17 @@ const { createApp } = require('../server');
   });
   try {
     const page = await browser.newPage();
+    await page.addInitScript(() => {
+      const Original = window.Audio;
+      window.__projections = [];
+      window.Audio = new Proxy(Original, {
+        construct(target, args) {
+          const node = Reflect.construct(target, args);
+          window.__projections.push(node);
+          return node;
+        },
+      });
+    });
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.request.post(`http://127.0.0.1:${server.address().port}/api/auth/login`, {
@@ -39,6 +50,16 @@ const { createApp } = require('../server');
     await page.keyboard.press('Escape');
     await page.locator('.ambient-surface').waitFor({ state: 'detached' });
     assert.ok(!(await page.locator('#app').evaluate((element) => element.inert)));
+    const control = page.locator('.notification-button');
+    for (let index = 0; index < 9; index++) await control.click();
+    assert.equal(await page.evaluate(() => window.__projections.length), 0);
+    await control.click();
+    await page.waitForFunction(
+      () => window.__projections[0]?.readyState >= 2 && !window.__projections[0].paused,
+    );
+    assert.equal(await page.evaluate(() => window.__projections.length), 1);
+    for (let index = 0; index < 10; index++) await control.click();
+    assert.ok(await page.evaluate(() => window.__projections[0].paused));
     await page.clock.install({ time: new Date('2030-01-01T00:00:00Z') });
     await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));
     const press = async () => {

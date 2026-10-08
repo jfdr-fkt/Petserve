@@ -59,7 +59,7 @@ export function chat() {
     <section class="panel chat-workspace ${isStaff() ? '' : 'customer-chat'}">
       ${isStaff() ? `<aside class="chat-inbox"><label class="search-field">${icon('search')}<input type="search" name="chatSearch" aria-label="Search conversations" placeholder="Find a customer…" value="${e(state.chatSearch)}"></label><div id="chat-threads">${threadList()}</div></aside>` : ''}
       <div class="chat-conversation">
-        <div class="chat-conversation-header"><span class="icon-tile sage">${icon('chat')}</span><div><h2 id="chat-title">${e(isStaff() ? selected?.customerName || 'Choose a conversation' : 'Petopia care team')}</h2><small id="chat-connection">Messages refresh automatically while this page is open.</small></div></div>
+        <div class="chat-conversation-header"><span class="icon-tile sage">${icon('chat')}</span><div><h2 id="chat-title">${e(isStaff() ? selected?.customerName || 'Choose a conversation' : 'Petopia care team')}</h2><small id="chat-connection">Messages refresh automatically while this page is open.</small></div>${selected && state.data.user.role !== 'staff' ? `<div class="chat-conversation-actions"><button type="button" class="btn btn-outline" data-action="chat-clear" aria-label="Delete conversation">${icon('trash')}<span>Delete chat</span></button></div>` : ''}</div>
         <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-label="Conversation">${chatMessages()}</div>
         <form data-form="chat" class="chat-composer">
           <div id="chat-attachment-preview">${chatAttachmentPreview()}</div>

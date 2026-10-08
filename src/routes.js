@@ -4,6 +4,8 @@ const { httpError } = require('./helpers');
 const { chatThreads } = require('./chat');
 const handlers = [
   require('./routes/accounts'),
+  require('./routes/account-security'),
+  require('./routes/chat-deletion'),
   require('./routes/account-deletion'),
   require('./routes/pets'),
   require('./routes/appointments'),

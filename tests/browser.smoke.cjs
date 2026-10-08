@@ -33,7 +33,9 @@ const { manilaNow } = require('../src/helpers');
       await page.locator('.mobile-menu-toggle').click();
       await page.locator('.app-shell.mobile-menu-open').waitFor();
     }
-    await page.locator(`.side-nav [data-view="${view}"]`).click();
+    await page
+      .locator(view === 'overview' ? '.sidebar .brand' : `.side-nav [data-view="${view}"]`)
+      .click();
     await page.locator('#main-content').waitFor();
     if (page.viewportSize().width <= 720)
       await page.waitForFunction(

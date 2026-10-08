@@ -11,6 +11,11 @@ async function createApp(options = {}) {
   const db = await seedDatabase(dbFile);
   const sessions = new Map();
   const persist = makePersist(db, dbFile);
+  if (
+    (options.demoData ?? !options.dbFile) &&
+    require('./src/demo-payments').prepareDemoPayments(db)
+  )
+    persist();
   const uploadsDir = options.uploadsDir || path.join(path.dirname(dbFile), 'uploads');
   const handler = createHandler(db, sessions, persist, uploadsDir);
   const server = http.createServer(handler);

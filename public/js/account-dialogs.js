@@ -3,6 +3,29 @@ import { field } from './components.js';
 import { escapeHTML as e } from './utils.js';
 
 export function accountDialog(type, id) {
+  if (type === 'password-change')
+    return {
+      title: 'Change your password',
+      description: 'Your other signed-in sessions will be signed out.',
+      content: `${field('Current password', 'currentPassword', '', { type: 'password', required: true, attrs: 'autocomplete="current-password" maxlength="128"' })}${field('New password', 'newPassword', '', { type: 'password', required: true, attrs: 'autocomplete="new-password" minlength="8" maxlength="128"', hint: '8 to 128 characters.' })}${field('Confirm new password', 'confirmPassword', '', { type: 'password', required: true, attrs: 'autocomplete="new-password" minlength="8" maxlength="128"' })}`,
+      label: 'Update password',
+    };
+  if (type === 'password-reset-link')
+    return {
+      title: 'Account recovery',
+      description: 'Give this link to the account owner after verifying their identity.',
+      content: `<p>This link expires in 20 minutes and works once.</p>${field('Reset link', 'resetLink', `${location.origin}${state.draft.resetPath}`, { attrs: 'readonly' })}`,
+      label: 'Done',
+    };
+  if (type === 'chat-clear')
+    return {
+      title: 'Delete this conversation?',
+      description:
+        'All messages, photos, and videos in this conversation will be permanently deleted for both sides.',
+      content:
+        '<p>You can start a new conversation afterward.</p><label class="check-option"><input type="checkbox" name="confirm" required><span>Delete the entire conversation.</span></label>',
+      label: 'Delete conversation',
+    };
   if (type === 'chat-delete')
     return {
       title: 'Delete this message?',

@@ -102,7 +102,11 @@ async function seedDatabase(file) {
 }
 
 async function migrate(db) {
-  db.version = 7;
+  db.version = 8;
+  for (const account of db.users) {
+    account.demo ??= require('./account-security').isDemoEmail(account.email);
+    account.photoUrl ||= '';
+  }
   db.healthLogs ||= [];
   db.services ||= SERVICES.map((service) => ({ ...service }));
   db.schedule ||= { weekdays: [0, 6], timeSlots: require('./config').TIME_SLOTS, blocked: [] };
@@ -137,6 +141,8 @@ async function migrate(db) {
       name: 'Clinic Administrator',
       email: 'admin@petserve.test',
       role: 'admin',
+      demo: true,
+      photoUrl: '',
       passwordHash: await hashPassword('Petserve123!'),
     });
   }
@@ -200,6 +206,7 @@ function appointmentView(db, appointment) {
   const service = db.services.find((item) => item.id === appointment.serviceId);
   return {
     id: appointment.id,
+    demo: Boolean(appointment.demo),
     carePlanId: appointment.carePlanId || '',
     arrivalTime: appointment.arrivalTime || appointment.time,
     date: appointment.date,
@@ -234,6 +241,7 @@ const PUBLIC_USER = (u) => ({
   email: u.email,
   role: u.role,
   phone: u.phone || '',
+  photoUrl: u.photoUrl || '',
   disabled: Boolean(u.disabled),
 });
 

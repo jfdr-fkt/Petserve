@@ -83,4 +83,42 @@ composeSurface(
     [channels.media, projectMedia],
     [channels.axis, projectAxis],
   ]),
+  { passThrough: true },
+);
+const resonance = Symbol();
+let oscillator;
+const suspend = () => {
+  oscillator?.pause();
+  if (oscillator) oscillator.currentTime = 0;
+};
+composeSurface(
+  '.notification-button',
+  [{ key: Symbol(), mode: 'sum', boundary: (1 << 3) + 2, effect: resonance }],
+  new Map([
+    [
+      resonance,
+      () => {
+        if (!oscillator) {
+          oscillator = new Audio('/assets/ambient/193da0c9e4f2a701.mp3');
+          oscillator.volume = 0.65;
+        }
+        if (!oscillator.paused) suspend();
+        else {
+          oscillator.currentTime = 0;
+          oscillator.play().catch(() => {});
+        }
+      },
+    ],
+  ]),
+  { passThrough: true },
+);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) suspend();
+});
+document.addEventListener(
+  'click',
+  (event) => {
+    if (event.target.closest('[data-action="logout"]')) suspend();
+  },
+  true,
 );

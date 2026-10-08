@@ -12,7 +12,7 @@ export function paymentDialog(type, id, draft) {
       title: 'Pay from your wallet',
       description: `${visit.petName} · ${visit.serviceName}`,
       label: 'Submit transfer for verification',
-      content: `<p class="subtle-note">Send the payment in your GCash or Maya app using the shop’s details below, then submit the transaction reference.</p>${field('Wallet', 'method', draft.method || methods[0], { choices: methods, required: true })}<div id="wallet-details">${walletDetails(draft.method || methods[0])}</div>${field('Amount sent (₱)', 'amount', draft.amount ?? visit.basePrice / 100, { type: 'number', required: true, attrs: 'min="0.01" max="1000000" step="0.01"' })}${field('Transaction reference', 'reference', draft.reference, { required: true, attrs: 'minlength="6" maxlength="60" pattern="(?:[a-zA-Z0-9]|-){6,60}"', placeholder: 'Reference from your wallet receipt' })}<p class="form-footnote">Payment is marked paid after the care team confirms receipt in the shop’s wallet.</p>`,
+      content: `<p class="subtle-note">Check the wallet details below, then enter the amount and transaction reference.</p>${field('Wallet', 'method', draft.method || methods[0], { choices: methods, required: true })}<div id="wallet-details">${walletDetails(draft.method || methods[0])}</div>${field('Amount sent (₱)', 'amount', draft.amount ?? visit.basePrice / 100, { type: 'number', required: true, attrs: 'min="0.01" max="1000000" step="0.01"' })}${field('Transaction reference', 'reference', draft.reference, { required: true, attrs: 'minlength="6" maxlength="60" pattern="(?:[a-zA-Z0-9]|-){6,60}"', placeholder: 'Reference from your wallet receipt' })}<p class="form-footnote">Payment is marked paid after the care team confirms receipt in the shop’s wallet.</p>`,
     };
   }
   if (type === 'transfer-review') {
@@ -62,6 +62,6 @@ export function paymentDialog(type, id, draft) {
 export function walletDetails(method) {
   const wallet = state.data.wallets[method];
   return wallet
-    ? `<dl class="wallet-details"><div><dt>Account name</dt><dd>${e(wallet.name)}</dd></div><div><dt>${e(method)} number</dt><dd>${e(wallet.number)}</dd></div>${wallet.instructions ? `<div><dt>From the shop</dt><dd>${e(wallet.instructions)}</dd></div>` : ''}</dl>`
+    ? `${wallet.demo ? '<p class="subtle-note">Demo wallet: use a sample reference. Do not send real money.</p>' : ''}<dl class="wallet-details"><div><dt>Account name</dt><dd>${e(wallet.name)}</dd></div><div><dt>${e(method)} number</dt><dd>${e(wallet.number)}</dd></div>${wallet.instructions ? `<div><dt>From the shop</dt><dd>${e(wallet.instructions)}</dd></div>` : ''}</dl>`
     : '';
 }

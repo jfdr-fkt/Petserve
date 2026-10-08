@@ -2,6 +2,8 @@ const crypto = require('node:crypto');
 const { send, readBody, requireUser, requireJson } = require('../http');
 const { hashPassword, verifyPassword, PUBLIC_USER, newId } = require('../db');
 const { clean, httpError } = require('../helpers');
+const { isDemoEmail } = require('../account-security');
+const { matchesFormat } = require('../media');
 
 module.exports = async ({ req, res, pathname, db, user, sessions, persist, token }) => {
   if (req.method === 'POST' && pathname === '/api/auth/logout') {
@@ -37,6 +39,8 @@ module.exports = async ({ req, res, pathname, db, user, sessions, persist, token
         name,
         email,
         role: 'customer',
+        demo: isDemoEmail(email),
+        photoUrl: '',
         passwordHash,
         phone: clean(data.phone, 30),
       };
@@ -44,11 +48,15 @@ module.exports = async ({ req, res, pathname, db, user, sessions, persist, token
       persist();
     } else {
       account = db.users.find((u) => u.email === email);
+      const expectedHash = account?.passwordHash;
       if (
         !account ||
         account.disabled ||
         password.length > 128 ||
-        !(await verifyPassword(password, account.passwordHash))
+        !(await verifyPassword(password, expectedHash)) ||
+        !db.users.includes(account) ||
+        account.disabled ||
+        account.passwordHash !== expectedHash
       )
         throw httpError(401, 'Email or password is incorrect, or the account is inactive.');
     }
@@ -69,9 +77,31 @@ module.exports = async ({ req, res, pathname, db, user, sessions, persist, token
     const data = await readBody(req),
       name = clean(data.name, 80);
     if (name.length < 2) throw httpError(400, 'Enter your full name.');
+    if (!db.users.includes(user) || user.disabled)
+      throw httpError(403, 'Sign in again to update your profile.');
+    let photoUrl = user.photoUrl || '';
+    if (data.photoUrl !== undefined) {
+      photoUrl = data.photoUrl;
+      const image =
+        typeof photoUrl === 'string' &&
+        /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(photoUrl);
+      if (
+        typeof photoUrl !== 'string' ||
+        photoUrl.length > 2000000 ||
+        (photoUrl && (!image || !matchesFormat(Buffer.from(image[2], 'base64'), image[1])))
+      )
+        throw httpError(400, 'Choose a valid JPG, PNG or WebP profile photo.');
+    }
+    const previous = { name: user.name, phone: user.phone, photoUrl: user.photoUrl };
     user.name = name;
     user.phone = clean(data.phone, 30);
-    persist();
+    user.photoUrl = photoUrl;
+    try {
+      persist();
+    } catch (error) {
+      Object.assign(user, previous);
+      throw error;
+    }
     send(res, 200, { user: PUBLIC_USER(user) });
     return true;
   }
