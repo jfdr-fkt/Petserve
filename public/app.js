@@ -12,9 +12,15 @@ import { gallery, feedback } from './js/views/community.js';
 import { uploadPreview } from './js/community-dialogs.js';
 import { icon } from './js/components.js';
 import { todayManila } from './js/utils.js';
+import { createInterface } from '../client/interface.jsx';
+import { chat } from './js/views/chat.js';
+import { startChat, stopChat, sendChat, searchChat } from './js/chat.js';
+import { applyTheme, themes } from './js/themes.js';
+import { walletDetails } from './js/payment-dialogs.js';
 
 const root = document.querySelector('#app');
 const modalRoot = document.querySelector('#modal-root');
+const ui = createInterface(root, modalRoot);
 const views = {
   overview,
   pets,
@@ -28,6 +34,7 @@ const views = {
   reports,
   gallery,
   feedback,
+  chat,
 };
 let focusBeforeDialog = null;
 let slotRequest = 0;
@@ -35,16 +42,19 @@ let slotRequest = 0;
 function render() {
   if (!state.data) return;
   if (!state.data.user) {
-    root.innerHTML = auth();
+    ui.auth(auth());
     closeDialog();
     return;
   }
   if (!navigation().some(([view]) => view === state.view)) state.view = 'overview';
-  root.innerHTML = shell(views[state.view]());
+  ui.workspace(
+    shell(views[state.view]()),
+    `${state.view}${state.view === 'pets' ? `-${state.selectedPet}-${state.petTab}` : ''}`,
+  );
   if (!state.dialog) renderDialog();
 }
 function renderDialog(focus = false) {
-  modalRoot.innerHTML = dialogContent();
+  ui.dialog(dialogContent(), `${state.dialog?.type}-${state.dialog?.id}`);
   root.inert = Boolean(state.dialog);
   document.body.classList.toggle('dialog-open', Boolean(state.dialog));
   if (focus && state.dialog) {
@@ -63,11 +73,11 @@ function openDialog(type, id = '', draft = {}, status = '') {
 function closeDialog() {
   const wasOpen = Boolean(state.dialog);
   state.dialog = null;
+  ui.dialog('', '');
   if (state.mediaPreview) URL.revokeObjectURL(state.mediaPreview);
   state.mediaFile = null;
   state.mediaPreview = '';
   state.draft = {};
-  modalRoot.innerHTML = '';
   root.inert = false;
   document.body.classList.remove('dialog-open');
   if (wasOpen) {
@@ -80,6 +90,7 @@ async function refresh() {
   render();
 }
 async function navigate(view) {
+  stopChat();
   setMobileMenu(false);
   closeDialog();
   state.view = view;
@@ -96,6 +107,7 @@ async function navigate(view) {
   render();
   if (view === 'book') await loadSlots();
   if (view === 'reports') await loadReport();
+  if (view === 'chat') startChat();
   document.querySelector('#main-content')?.focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -203,12 +215,24 @@ async function handleClick(event) {
   if (button.dataset.service) {
     state.booking.serviceId = button.dataset.service;
     state.booking.time = '';
+    if (state.booking.serviceId !== 'consultation') state.booking.petIds = [state.booking.petId];
     render();
     await loadSlots();
     return;
   }
   if (button.dataset.bookPet) {
-    state.booking.petId = button.dataset.bookPet;
+    const petId = button.dataset.bookPet;
+    const selected = state.booking.petIds;
+    if (state.booking.serviceId === 'consultation') {
+      if (selected.includes(petId)) {
+        if (selected.length > 1) state.booking.petIds = selected.filter((id) => id !== petId);
+      } else if (selected.length < 6) state.booking.petIds.push(petId);
+      else {
+        toast('A shared consultation can include up to six pets.');
+        return;
+      }
+    } else state.booking.petIds = [petId];
+    state.booking.petId = state.booking.petIds[0];
     render();
     return;
   }
@@ -230,6 +254,37 @@ async function handleClick(event) {
     id = button.dataset.id;
   if (!action) return;
   try {
+    if (action === 'theme-select' || action === 'theme-cycle') {
+      applyTheme(
+        action === 'theme-select'
+          ? button.dataset.theme
+          : themes[(themes.findIndex(([name]) => name === state.theme) + 1) % themes.length][0],
+      );
+      if (state.view === 'account') render();
+      return;
+    }
+    if (['online-payment', 'transfer-review', 'payment-settings'].includes(action)) {
+      openDialog(action, id);
+      return;
+    }
+    if (action === 'chat-select') {
+      state.chatCustomerId = id;
+      state.chatMessages = [];
+      state.chatDraft = '';
+      state.chatLoading = true;
+      state.chatForceScroll = true;
+      render();
+      startChat();
+      return;
+    }
+    if (action === 'chat-open') {
+      state.chatCustomerId = state.data.user.role === 'customer' ? state.data.user.id : id;
+      state.chatMessages = [];
+      state.chatDraft = '';
+      state.chatLoading = true;
+      await navigate('chat');
+      return;
+    }
     if (action === 'sidebar-toggle') {
       state.sidebarCollapsed = !state.sidebarCollapsed;
       root
@@ -281,6 +336,7 @@ async function handleClick(event) {
       return;
     }
     if (action === 'logout') {
+      stopChat();
       setMobileMenu(false);
       button.disabled = true;
       await api('/api/auth/logout', 'POST', {});
@@ -291,8 +347,19 @@ async function handleClick(event) {
         search: '',
         filter: 'all',
         notifications: false,
+        chatCustomerId: '',
+        chatMessages: [],
+        chatDraft: '',
+        chatSearch: '',
       });
-      state.booking = { serviceId: 'grooming', petId: '', date: '', time: '', note: '' };
+      state.booking = {
+        serviceId: 'grooming',
+        petId: '',
+        petIds: [],
+        date: '',
+        time: '',
+        note: '',
+      };
       history.replaceState(null, '', '#overview');
       await refresh();
       return;
@@ -343,6 +410,7 @@ async function handleClick(event) {
     }
     if (action === 'book-pet') {
       state.booking.petId = id;
+      state.booking.petIds = [id];
       await navigate('book');
       return;
     }
@@ -354,6 +422,7 @@ async function handleClick(event) {
     if (action === 'book-again') {
       const appointment = state.data.appointments.find((a) => a.id === id);
       state.booking.petId = appointment.petId;
+      state.booking.petIds = [...appointment.petIds];
       state.booking.serviceId = appointment.serviceId;
       await navigate('book');
       return;
@@ -450,6 +519,14 @@ modalRoot.addEventListener('click', handleClick);
 
 function handleInput(event) {
   const target = event.target;
+  if (target.name === 'chatText') {
+    state.chatDraft = target.value;
+    return;
+  }
+  if (target.name === 'chatSearch') {
+    searchChat(target.value);
+    return;
+  }
   if (target.name === 'search') {
     const start = target.selectionStart,
       end = target.selectionEnd;
@@ -469,6 +546,12 @@ root.addEventListener('input', handleInput);
 modalRoot.addEventListener('input', handleInput);
 async function handleChange(event) {
   const target = event.target;
+  if (target.name === 'method' && state.dialog?.type === 'online-payment') {
+    state.draft.method = target.value;
+    const details = document.querySelector('#wallet-details');
+    if (details) details.innerHTML = walletDetails(target.value);
+    return;
+  }
   if (target.id === 'gallery-file') {
     const file = target.files?.[0];
     if (state.mediaPreview) URL.revokeObjectURL(state.mediaPreview);
@@ -549,6 +632,42 @@ async function handleSubmit(event) {
   const submitLabel = submit.textContent;
   try {
     switch (form.dataset.form) {
+      case 'chat':
+        await sendChat(values.chatText);
+        submit.disabled = false;
+        return;
+      case 'online-payment':
+        await api(`/api/appointments/${id}/online-payment`, 'POST', values);
+        message = 'Transfer submitted. The team will verify the payment.';
+        break;
+      case 'transfer-review': {
+        const request = state.data.appointments.find((a) => a.id === id).paymentRequest;
+        await api(`/api/payment-requests/${request.id}`, 'PATCH', {
+          ...values,
+          received: values.received === 'on',
+        });
+        message =
+          values.status === 'verified'
+            ? 'Transfer verified. The receipt is ready.'
+            : 'The customer can correct and resubmit their transfer.';
+        break;
+      }
+      case 'payment-settings': {
+        const settings = Object.fromEntries(
+          ['GCash', 'Maya'].map((method) => [
+            method,
+            {
+              enabled: values[`${method}-enabled`] === 'true',
+              name: values[`${method}-name`],
+              number: values[`${method}-number`],
+              instructions: values[`${method}-instructions`],
+            },
+          ]),
+        );
+        await api('/api/payment-settings', 'PATCH', settings);
+        message = 'Online payment details saved.';
+        break;
+      }
       case 'feedback-write':
         await api(`/api/appointments/${id}/feedback`, 'POST', values);
         message = 'Thank you. Your feedback has been shared with the care team.';
@@ -650,7 +769,6 @@ async function handleSubmit(event) {
       case 'service':
         await api(`/api/services/${id}`, 'PATCH', {
           ...values,
-          duration: Number(values.duration),
           active: values.active === 'true',
         });
         message = 'Service menu updated.';
@@ -738,6 +856,16 @@ function exportReport() {
 }
 
 document.addEventListener('keydown', (event) => {
+  if (
+    event.target.id === 'chat-text' &&
+    event.key === 'Enter' &&
+    !event.shiftKey &&
+    !event.isComposing
+  ) {
+    event.preventDefault();
+    event.target.form.requestSubmit();
+    return;
+  }
   if (state.mobileMenuOpen && !state.dialog) {
     if (event.key === 'Escape') {
       setMobileMenu(false);
@@ -811,9 +939,12 @@ window.addEventListener('resize', () => {
 state.view = views[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
 refresh()
   .then(async () => {
-    if (state.data.user && ['book', 'reports'].includes(state.view)) await navigate(state.view);
+    if (state.data.user && ['book', 'reports', 'chat'].includes(state.view))
+      await navigate(state.view);
   })
   .catch(() => {
-    root.innerHTML = `<div class="loading-screen"><h1>Let’s reconnect.</h1><p>PetServe could not be reached. Start the server and reload the page.</p><button type="button" class="btn btn-primary" id="retry">Try again</button></div>`;
+    ui.auth(
+      `<div class="loading-screen"><h1>Let’s reconnect.</h1><p>PetServe could not be reached. Start the server and reload the page.</p><button type="button" class="btn btn-primary" id="retry">Try again</button></div>`,
+    );
     document.querySelector('#retry').addEventListener('click', () => location.reload());
   });

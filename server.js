@@ -18,6 +18,7 @@ async function createApp(options = {}) {
 }
 
 if (require.main === module) {
+  require('./scripts/build.cjs').buildClient();
   createApp()
     .then(({ server }) => {
       const port = Number(process.env.PORT) || 3000;

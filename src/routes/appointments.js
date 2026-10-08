@@ -3,24 +3,27 @@ const { newId, now, appointmentView } = require('../db');
 const { clean, httpError } = require('../helpers');
 const { PAYMENT_METHODS } = require('../config');
 const { assertSlot, assertPetFree } = require('../scheduling');
+const { visitPetIds, selectVisitPets } = require('../visits');
 
 module.exports = async ({ req, res, pathname, db, user, persist }) => {
   if (pathname === '/api/appointments' && req.method === 'POST') {
     requireUser(user, 'customer');
     requireJson(req);
     const data = await readBody(req);
-    const pet = db.pets.find((p) => p.id === data.petId && p.ownerId === user.id && !p.deletedAt);
     const service = db.services.find((s) => s.id === data.serviceId);
-    if (!pet || !service) throw httpError(400, 'Choose your pet and a listed service.');
+    if (!service) throw httpError(400, 'Choose a listed service.');
+    const pets = selectVisitPets(db, user, data, service);
     assertSlot(db, service, data.date, data.time);
-    assertPetFree(db, pet.id, data.date, data.time, service.duration);
+    for (const pet of pets) assertPetFree(db, pet.id, data.date, data.time, service.duration);
     const appointment = {
       id: newId(),
       customerId: user.id,
-      petId: pet.id,
+      petId: pets[0].id,
+      petIds: pets.map((p) => p.id),
       serviceId: service.id,
       serviceName: service.name,
-      basePrice: service.basePrice,
+      basePrice: service.basePrice * pets.length,
+      unitPrice: service.basePrice,
       duration: service.duration,
       resource: service.resource,
       date: data.date,
@@ -35,18 +38,13 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
     send(res, 201, { appointment: appointmentView(db, appointment) });
     return true;
   }
-  const match =
-    /^\/api\/appointments\/([a-f0-9-]+)\/(status|payment|online-payment|reschedule)$/.exec(
-      pathname,
-    );
+  const match = /^\/api\/appointments\/([a-f0-9-]+)\/(status|payment|reschedule)$/.exec(pathname);
   if (!match) return false;
   requireUser(user);
   const item = db.appointments.find((a) => a.id === match[1]);
   if (!item) throw httpError(404, 'Appointment not found.');
   if (user.role === 'customer' && item.customerId !== user.id)
     throw httpError(403, 'Access denied.');
-  if (match[2] === 'online-payment')
-    throw httpError(403, 'Payments are recorded by clinic staff after your visit.');
   const paid = db.payments.some((p) => p.appointmentId === item.id);
   const service = db.services.find((s) => s.id === item.serviceId);
   if (match[2] === 'status' && req.method === 'PATCH') {
@@ -76,7 +74,7 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
           item.time,
           item.id,
         );
-        if (db.pets.find((p) => p.id === item.petId)?.deletedAt)
+        if (visitPetIds(item).some((id) => db.pets.find((p) => p.id === id)?.deletedAt))
           throw httpError(409, 'This pet has been archived.');
       }
       if (next === 'cancelled' && paid) throw httpError(409, 'This visit has a payment record.');
@@ -86,6 +84,7 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
           id: newId(),
           appointmentId: item.id,
           petId: item.petId,
+          petIds: visitPetIds(item),
           notes: clean(data.serviceNotes, 1000) || item.staffNote,
           recordedAt: now(),
           recordedBy: user.id,
@@ -112,7 +111,8 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
       data.time,
       item.id,
     );
-    assertPetFree(db, item.petId, data.date, data.time, item.duration || service.duration, item.id);
+    for (const petId of visitPetIds(item))
+      assertPetFree(db, petId, data.date, data.time, item.duration || service.duration, item.id);
     item.date = data.date;
     item.time = data.time;
     item.status = 'pending';
@@ -134,6 +134,11 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
     const data = await readBody(req),
       amount = Number(data.amount),
       method = clean(data.method, 30);
+    if (db.paymentRequests.some((r) => r.appointmentId === item.id && r.status === 'pending'))
+      throw httpError(
+        409,
+        'Verify or reject the pending online transfer before recording another payment.',
+      );
     if (
       !Number.isFinite(amount) ||
       amount <= 0 ||

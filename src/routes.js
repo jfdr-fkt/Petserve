@@ -1,12 +1,15 @@
 const { send, serveStatic } = require('./http');
 const { PUBLIC_USER, appointmentView } = require('./db');
 const { httpError } = require('./helpers');
+const { chatThreads } = require('./chat');
 const handlers = [
   require('./routes/accounts'),
   require('./routes/pets'),
   require('./routes/appointments'),
   require('./routes/clinic'),
   require('./routes/community'),
+  require('./routes/transfers'),
+  require('./routes/chat'),
 ];
 
 function createHandler(db, sessions, persist, uploadsDir) {
@@ -53,6 +56,8 @@ function createHandler(db, sessions, persist, uploadsDir) {
                 .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))
             : [],
           users: user?.role === 'admin' ? db.users.map(PUBLIC_USER) : [],
+          wallets: user ? db.wallets : {},
+          chatThreads: user ? chatThreads(db, user) : [],
           feedback: user
             ? db.feedback
                 .filter((f) => staff || f.customerId === user.id)

@@ -61,7 +61,10 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
   if (!match[2] && req.method === 'DELETE') {
     requireUser(user, 'customer');
     if (
-      db.appointments.some((a) => a.petId === pet.id && ['pending', 'confirmed'].includes(a.status))
+      db.appointments.some(
+        (a) =>
+          (a.petIds || [a.petId]).includes(pet.id) && ['pending', 'confirmed'].includes(a.status),
+      )
     )
       throw httpError(409, 'Cancel or complete this pet’s upcoming visits before archiving.');
     pet.deletedAt = now();

@@ -3,6 +3,9 @@ import { escapeHTML as e, titleCase, money, dateLabel, timeLabel } from './utils
 export { serviceIcon };
 
 const paths = {
+  chat: '<path d="M4 4h16v13H9l-5 4z"/><path d="M8 8h8M8 12h5"/>',
+  send: '<path d="m3 3 18 9-18 9 4-9zM7 12h14"/>',
+  theme: '<path d="M21 13a9 9 0 0 1-10-10 9 9 0 1 0 10 10z"/>',
   collapse: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16m7-12-3 4 3 4"/>',
   expand: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16m4-12 3 4-3 4"/>',
   menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',

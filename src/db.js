@@ -4,6 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { promisify } = require('node:util');
 const { SERVICES } = require('./config');
+const { visitPetIds } = require('./visits');
 
 const scrypt = promisify(crypto.scrypt);
 
@@ -101,13 +102,21 @@ async function seedDatabase(file) {
 }
 
 async function migrate(db) {
-  db.version = 3;
+  db.version = 4;
   db.healthLogs ||= [];
   db.services ||= SERVICES.map((service) => ({ ...service }));
   db.schedule ||= { weekdays: [0, 6], timeSlots: require('./config').TIME_SLOTS, blocked: [] };
   db.serviceRecords ||= [];
   db.feedback ||= [];
   db.gallery ||= [];
+  db.chats ||= [];
+  db.paymentRequests ||= [];
+  db.wallets ||= Object.fromEntries(
+    ['GCash', 'Maya'].map((method) => [
+      method,
+      { enabled: false, name: '', number: '', instructions: '' },
+    ]),
+  );
   if (!db.users.some((user) => user.role === 'admin')) {
     db.users.push({
       id: newId(),
@@ -123,6 +132,8 @@ async function migrate(db) {
     appointment.basePrice ??= service?.basePrice || 0;
     appointment.duration ||= service?.duration || 60;
     appointment.resource ||= service?.resource || 'veterinarian';
+    appointment.petIds ||= [appointment.petId];
+    appointment.unitPrice ??= appointment.basePrice;
     if (
       appointment.status === 'completed' &&
       !db.serviceRecords.some((record) => record.appointmentId === appointment.id)
@@ -131,6 +142,7 @@ async function migrate(db) {
         id: newId(),
         appointmentId: appointment.id,
         petId: appointment.petId,
+        petIds: visitPetIds(appointment),
         notes: appointment.staffNote || '',
         recordedAt: appointment.createdAt,
         recordedBy: '',
@@ -168,6 +180,8 @@ function paymentView(db, appointment) {
 
 function appointmentView(db, appointment) {
   const pet = db.pets.find((item) => item.id === appointment.petId);
+  const petIds = visitPetIds(appointment);
+  const pets = petIds.map((id) => db.pets.find((p) => p.id === id)).filter(Boolean);
   const owner = db.users.find((item) => item.id === appointment.customerId);
   const service = db.services.find((item) => item.id === appointment.serviceId);
   return {
@@ -180,7 +194,10 @@ function appointmentView(db, appointment) {
     duration: appointment.duration || service?.duration || 60,
     resource: appointment.resource || service?.resource,
     petId: appointment.petId,
-    petName: pet?.name ?? 'Pet',
+    petIds,
+    petNames: pets.map((p) => p.name),
+    petName: pets.map((p) => p.name).join(', ') || pet?.name || 'Pet',
+    unitPrice: appointment.unitPrice ?? appointment.basePrice,
     customerName: owner?.name ?? 'Customer',
     customerId: appointment.customerId,
     status: appointment.status,
@@ -190,6 +207,8 @@ function appointmentView(db, appointment) {
     serviceRecord:
       db.serviceRecords.find((record) => record.appointmentId === appointment.id) || null,
     payment: paymentView(db, appointment),
+    paymentRequest:
+      [...db.paymentRequests].reverse().find((r) => r.appointmentId === appointment.id) || null,
   };
 }
 

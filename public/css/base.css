@@ -107,7 +107,7 @@ strong {
   font-weight: 600;
 }
 :focus-visible {
-  outline: 3px solid #6487ad;
+  outline: 3px solid var(--selected-border);
   outline-offset: 3px;
 }
 [hidden] {
@@ -179,5 +179,5 @@ strong {
   overflow: hidden;
 }
 ::selection {
-  background: #dce9f7;
+  background: var(--highlight);
 }

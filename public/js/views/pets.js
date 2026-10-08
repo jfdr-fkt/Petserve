@@ -50,7 +50,7 @@ export function pets() {
 }
 
 function petContent(pet) {
-  const apps = state.data.appointments.filter((a) => a.petId === pet.id);
+  const apps = state.data.appointments.filter((a) => (a.petIds || [a.petId]).includes(pet.id));
   const logs = state.data.healthLogs
     .filter((h) => h.petId === pet.id)
     .sort((a, b) => b.date.localeCompare(a.date));

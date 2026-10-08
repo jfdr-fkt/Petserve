@@ -9,7 +9,7 @@
 }
 .gallery-media {
   aspect-ratio: 4 / 3;
-  background: #edf2f8;
+  background: var(--tint);
   overflow: hidden;
 }
 .gallery-media img,
@@ -50,7 +50,7 @@
   gap: 12px;
   border-left: 3px solid var(--accent);
   padding: 16px 20px;
-  background: #fff9e8;
+  background: var(--notice);
   border-radius: 0 12px 12px 0;
 }
 .gallery-intro p {
@@ -60,7 +60,7 @@
   margin-top: 16px;
   border-radius: 12px;
   overflow: hidden;
-  background: #edf2f8;
+  background: var(--tint);
 }
 .upload-preview img,
 .upload-preview video {
@@ -146,8 +146,8 @@
   margin-top: 20px;
   padding: 18px;
   border-radius: 12px;
-  background: #eef4fb;
-  border-left: 3px solid #88a9cc;
+  background: var(--tint);
+  border-left: 3px solid var(--selected-border);
 }
 .feedback-reply p {
   margin-top: 8px;

@@ -667,7 +667,7 @@
     position: fixed;
     inset: 0;
     z-index: 55;
-    background: #23384d66;
+    background: var(--overlay);
   }
   .app-shell .sidebar-header {
     flex-direction: row;
@@ -740,7 +740,7 @@
 }
 @media print {
   body {
-    background: white;
+    background: var(--surface);
   }
   #app,
   #toast,
@@ -754,7 +754,7 @@
     position: static;
     display: block;
     padding: 0;
-    background: white;
+    background: var(--surface);
     backdrop-filter: none;
   }
   .modal-card {

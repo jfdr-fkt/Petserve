@@ -64,7 +64,7 @@
 }
 .sidebar {
   padding: 32px 20px 18px;
-  background: #ffffff;
+  background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -136,16 +136,16 @@
   height: 18px;
 }
 .side-nav button:hover {
-  background: #f0f4f9;
+  background: var(--subtle);
 }
 .side-nav button.active {
-  background: #e7eff8;
+  background: var(--tint);
   color: var(--sage-text);
   font-weight: 600;
 }
 .nav-count {
   margin-left: auto;
-  background: #fffefa;
+  background: var(--surface);
   padding: 1px 7px;
   border-radius: 6px;
   font-size: var(--text-sm);
@@ -158,7 +158,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  border-top: 1px solid #e2e8ef;
+  border-top: 1px solid var(--border);
   padding: 20px 8px;
 }
 .clinic-card strong {
@@ -182,7 +182,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 8px;
-  background: #eef4fb;
+  background: var(--tint);
   border-radius: 13px;
 }
 .profile-mini div {
@@ -212,7 +212,7 @@
   height: 34px;
   width: 34px;
   flex-shrink: 0;
-  background: #dfe9f4;
+  background: var(--highlight);
   border-radius: 11px;
   font-size: var(--text-base);
   color: var(--sage-text);

@@ -144,7 +144,7 @@ test('editable availability and durations protect overlapping resources and keep
         { amount: 600 },
       )
     ).status,
-    403,
+    409,
   );
   assert.equal(
     (

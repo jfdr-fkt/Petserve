@@ -114,7 +114,7 @@ module.exports = async ({ req, res, pathname, url, db, user, persist }) => {
     if (!service) throw httpError(404, 'Service not found.');
     const data = await readBody(req),
       price = Number(data.price),
-      duration = Number(data.duration);
+      duration = data.duration === undefined ? service.duration : Number(data.duration);
     if (
       !clean(data.name, 80) ||
       !Number.isFinite(price) ||

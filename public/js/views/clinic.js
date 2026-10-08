@@ -1,3 +1,4 @@
+import { appearance } from '../themes.js';
 import { state } from '../state.js';
 import { heading, field, icon, button, stats, statusBadge, empty } from '../components.js';
 import { escapeHTML as e, dateLabel, todayManila, timeLabel, money } from '../utils.js';
@@ -19,7 +20,7 @@ export function schedule() {
             const closed = !state.data.schedule.weekdays.includes(
               new Date(`${date}T12:00Z`).getUTCDay(),
             );
-            return `<td>${visits.length ? visits.map((a) => `<button type="button" class="schedule-visit ${resource === 'groomer' ? 'sage' : 'lavender'}" data-action="find-appointment" data-id="${a.id}"><div><strong>${e(a.petName)}</strong>${statusBadge(a.status)}</div><small>${e(a.serviceName)} · ${a.duration} min</small><small>${e(a.customerName)}</small></button>`).join('') : `<span class="schedule-open ${blocked || closed ? 'muted' : ''}">${blocked ? `Blocked · ${e(blocked.reason || 'Team unavailable')}` : closed ? 'Clinic closed' : 'No visits starting here'}</span>`}</td>`;
+            return `<td>${visits.length ? visits.map((a) => `<button type="button" class="schedule-visit ${resource === 'groomer' ? 'sage' : 'lavender'}" data-action="find-appointment" data-id="${a.id}"><div><strong>${e(a.petName)}</strong>${statusBadge(a.status)}</div><small>${e(a.serviceName)}</small><small>${e(a.customerName)}</small></button>`).join('') : `<span class="schedule-open ${blocked || closed ? 'muted' : ''}">${blocked ? `Blocked · ${e(blocked.reason || 'Team unavailable')}` : closed ? 'Clinic closed' : 'No visits starting here'}</span>`}</td>`;
           })
           .join('')}</tr>`,
     )
@@ -29,7 +30,7 @@ export function schedule() {
 }
 
 export function services() {
-  return `${heading('Thoughtful care, clearly defined', 'Services', 'Keep the service menu, estimated prices, and visit lengths up to date.')}<div class="service-management-grid">${state.data.services.map((s) => `<section class="panel service-management-card"><div class="service-card-top"><span class="icon-tile ${s.id === 'grooming' ? 'peach' : 'lavender'}">${icon(s.id)}</span><span class="status ${s.active ? 'confirmed' : 'cancelled'}">${s.active ? 'Available' : 'Paused'}</span></div><span class="eyebrow">${e(s.group)}</span><h2>${e(s.name)}</h2><p>${e(s.description)}</p><dl><div><dt>Estimated price</dt><dd>${money(s.basePrice)}</dd></div><div><dt>Visit length</dt><dd>${s.duration} minutes</dd></div><div><dt>Care team</dt><dd>${s.resource === 'groomer' ? 'Grooming' : 'Veterinary'}</dd></div></dl>${button('Edit service', 'service-edit', 'edit', 'outline', `data-id="${s.id}"`)}</section>`).join('')}</div>`;
+  return `${heading('Thoughtful care, clearly defined', 'Services', 'Keep the service menu and prices up to date.')}<div class="service-management-grid">${state.data.services.map((s) => `<section class="panel service-management-card"><div class="service-card-top"><span class="icon-tile ${s.id === 'grooming' ? 'peach' : 'lavender'}">${icon(s.id)}</span><span class="status ${s.active ? 'confirmed' : 'cancelled'}">${s.active ? 'Available' : 'Paused'}</span></div><span class="eyebrow">${e(s.group)}</span><h2>${e(s.name)}</h2><p>${e(s.description)}</p><dl><div><dt>Estimated price</dt><dd>${money(s.basePrice)}</dd></div><div><dt>Care team</dt><dd>${s.resource === 'groomer' ? 'Grooming' : 'Veterinary'}</dd></div></dl>${button('Edit service', 'service-edit', 'edit', 'outline', `data-id="${s.id}"`)}</section>`).join('')}</div>`;
 }
 
 export function accounts() {
@@ -38,7 +39,7 @@ export function accounts() {
 
 export function account() {
   const u = state.data.user;
-  return `${heading('Your details, close at hand', 'My account', 'Keep your name and contact number up to date.')}<div class="account-layout"><section class="panel account-form"><div class="panel-header"><div><h2>Your profile</h2><p>These details help the care team keep in touch.</p></div></div><form data-form="account">${field('Full name', 'name', u.name, { required: true, attrs: 'minlength="2" maxlength="80" autocomplete="name"' })}${field('Phone number', 'phone', u.phone, { type: 'tel', attrs: 'maxlength="30" autocomplete="tel"' })}${field('Email address', 'email', u.email, { type: 'email', attrs: 'disabled', hint: 'Your sign-in email.' })}<div class="form-error" role="alert" hidden></div><button type="submit" class="btn btn-primary">Save details</button></form></section><section class="account-aside care-note sage"><span class="icon-tile sage">${icon('pets')}</span><h2>A familiar face.<br>A happier visit.</h2><p>A current profile helps us connect your pets, appointments, and care records.</p><span class="status confirmed">${u.role === 'customer' ? 'Pet parent' : u.role === 'staff' ? 'Employee' : 'Administrator'}</span></section></div>`;
+  return `${heading('Your details, close at hand', 'My account', 'Keep your name and contact number up to date.')}<div class="account-layout"><section class="panel account-form"><div class="panel-header"><div><h2>Your profile</h2><p>These details help the care team keep in touch.</p></div></div><form data-form="account">${field('Full name', 'name', u.name, { required: true, attrs: 'minlength="2" maxlength="80" autocomplete="name"' })}${field('Phone number', 'phone', u.phone, { type: 'tel', attrs: 'maxlength="30" autocomplete="tel"' })}${field('Email address', 'email', u.email, { type: 'email', attrs: 'disabled', hint: 'Your sign-in email.' })}<div class="form-error" role="alert" hidden></div><button type="submit" class="btn btn-primary">Save details</button></form></section><section class="account-aside care-note sage"><span class="icon-tile sage">${icon('pets')}</span><h2>A familiar face.<br>A happier visit.</h2><p>A current profile helps us connect your pets, appointments, and care records.</p><span class="status confirmed">${u.role === 'customer' ? 'Pet parent' : u.role === 'staff' ? 'Employee' : 'Administrator'}</span></section></div>${appearance()}`;
 }
 
 export function reports() {

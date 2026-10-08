@@ -3,6 +3,7 @@ import { field, icon, petAvatar, receipt } from './components.js';
 import { escapeHTML as e, money, dateLabel, timeLabel, todayManila } from './utils.js';
 import { slotPicker } from './views/booking.js';
 import { communityDialog } from './community-dialogs.js';
+import { paymentDialog } from './payment-dialogs.js';
 
 export function dialogContent() {
   if (!state.dialog) return '';
@@ -15,7 +16,7 @@ export function dialogContent() {
     label = 'Save changes',
     form = type,
     wide = false;
-  const community = communityDialog(type, id, d);
+  const community = communityDialog(type, id, d) || paymentDialog(type, id, d);
   if (community) {
     ({ title, description, content, label } = community);
   } else if (type === 'pet') {
@@ -119,26 +120,18 @@ export function dialogContent() {
     label = 'Block time';
   } else if (type === 'service') {
     title = 'A little care-menu refresh.';
-    description =
-      'Updates apply to new requests. Existing visits keep their booked price and length.';
-    content = `${field('Service name', 'name', d.name, { required: true, attrs: 'maxlength="80"' })}${field('Description', 'description', d.description, { type: 'textarea', attrs: 'maxlength="300"' })}<div class="form-grid">${field('Estimated price (₱)', 'price', d.basePrice / 100, { type: 'number', required: true, attrs: 'min="0" max="1000000" step="0.01"' })}${field(
-      'Visit length',
-      'duration',
-      d.duration,
+    description = 'Updates apply to new requests. Existing visits keep their booked price.';
+    content = `${field('Service name', 'name', d.name, { required: true, attrs: 'maxlength="80"' })}${field('Description', 'description', d.description, { type: 'textarea', attrs: 'maxlength="300"' })}<div class="form-grid">${field('Estimated price (₱)', 'price', d.basePrice / 100, { type: 'number', required: true, attrs: 'min="0" max="1000000" step="0.01"' })}</div>${field(
+      'Booking availability',
+      'active',
+      String(d.active),
       {
         choices: [
-          ['30', '30 minutes'],
-          ['60', '60 minutes'],
-          ['90', '90 minutes'],
-          ['120', '120 minutes'],
+          ['true', 'Available for booking'],
+          ['false', 'Pause new bookings'],
         ],
       },
-    )}</div>${field('Booking availability', 'active', String(d.active), {
-      choices: [
-        ['true', 'Available for booking'],
-        ['false', 'Pause new bookings'],
-      ],
-    })}`;
+    )}`;
   } else if (type === 'user') {
     title = 'The right access.';
     description = `${d.name} · ${d.email}`;

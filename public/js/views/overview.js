@@ -102,7 +102,7 @@ export function overview() {
           .filter((s) => s.active)
           .map(
             (s) =>
-              `<button type="button" class="service-mini" data-action="book-service" data-id="${s.id}"><span class="icon-tile ${s.id === 'grooming' ? 'peach' : 'lavender'}">${icon(s.id)}</span><strong>${e(s.name)}</strong><small>${s.duration} min · from ${money(s.basePrice)}</small>${icon('arrow')}</button>`,
+              `<button type="button" class="service-mini" data-action="book-service" data-id="${s.id}"><span class="icon-tile ${s.id === 'grooming' ? 'peach' : 'lavender'}">${icon(s.id)}</span><strong>${e(s.name)}</strong><small>From ${money(s.basePrice)}</small>${icon('arrow')}</button>`,
           )
           .join('')}</div></section>`
       : ''

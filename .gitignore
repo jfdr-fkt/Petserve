@@ -4,3 +4,4 @@ node_modules/
 artifacts/
 data/test-*/
 data/uploads/
+public/build/

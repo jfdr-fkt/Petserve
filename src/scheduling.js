@@ -1,4 +1,5 @@
 const { validDate, manilaNow, httpError } = require('./helpers');
+const { visitPetIds } = require('./visits');
 
 const minutes = (time) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
 const resourceOf = (db, appointment) =>
@@ -53,7 +54,7 @@ function assertPetFree(db, petId, date, time, duration, ignoreId = '') {
     db.appointments.some(
       (a) =>
         a.id !== ignoreId &&
-        a.petId === petId &&
+        visitPetIds(a).includes(petId) &&
         a.date === date &&
         ['pending', 'confirmed'].includes(a.status) &&
         overlaps(time, duration, a.time, durationOf(db, a)),

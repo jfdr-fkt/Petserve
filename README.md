@@ -4,13 +4,14 @@ A local, integrated pet care prototype for **Petopia Pet Care Services, Tagum Ci
 
 ## Run
 
-Use Node.js 20 or newer. From this folder:
+Use Node.js 20 or newer. From this folder, install dependencies and start the app:
 
 ```sh
-node server.js
+npm install
+npm start
 ```
 
-Open **http://127.0.0.1:3000**. The application has no production dependencies. Saved records live in `data/db.json`, and gallery files live in `data/uploads/`. An older database is migrated automatically without resetting its pets, bookings, or payments. Stop the server before copying both the database and uploads directory for a backup.
+Open **http://127.0.0.1:3000**. Startup builds the local React/Motion browser bundle automatically; `node server.js` also builds it before starting. Saved records, transfer submissions, wallet settings, and chat conversations live in `data/db.json`, and gallery files live in `data/uploads/`. An older database is migrated automatically without resetting its pets, bookings, or payments. Stop the server before copying both the database and uploads directory for a backup.
 
 To use another port in PowerShell:
 
@@ -33,33 +34,40 @@ The sign-in page includes a collapsible demo account picker. Registration create
 
 - **My Pets:** searchable companion list, detailed profile, local photo upload, full profile editing, species filters, birthday/age, sex, weight, sensitivities, comfort notes, and archiving. Photo selection preserves the form draft. Active visits must be closed before archiving; appointment and payment history is retained.
 - **Health records:** vaccination, deworming, and health notes with record dates, optional clinic-provided follow-up dates, and source labels distinguishing owner information from clinic records. These are records, not diagnosis or treatment advice.
-- **Booking:** grooming, vaccination, deworming, and veterinary consultation; live availability, estimated prices, visit length, selected pet, visit notes, and a request summary. Slots follow the staff-configured opening days and start times in Asia/Manila, up to 90 days ahead.
+- **Booking:** grooming, vaccination, deworming, and veterinary consultation; live availability, service prices, selected pets, visit notes, and a request summary. A consultation can group up to six of the customer's pets into one visit at the same start time. Its service price applies per pet and the summary shows the combined price. Grooming, vaccination, and deworming remain individual visits. Every selected pet is checked for overlapping requests and included in the visit history and completed record. Slots follow the staff-configured opening days and start times in Asia/Manila, up to 90 days ahead.
 - **Appointments:** requests, staff confirmation or decline, owner-facing staff messages, cancellation, rescheduling for renewed review, and completed care notes. Requests do not reserve a resource until confirmed. Confirmed bookings check overlapping durations for one grooming team and one veterinary team. A pet cannot have overlapping active requests.
 - **Staff schedule:** daily visits by care team, editable regular opening days/times, and resource-specific full-day or one-hour blocks. Availability changes that conflict with confirmed visits are refused until those visits are rescheduled.
-- **Service management:** employees and administrators edit service names, descriptions, estimated prices, visit lengths, and booking availability. Existing appointments retain their booked service name, estimated price, duration, and resource.
+- **Service management:** employees and administrators edit service names, descriptions, prices, and booking availability. Estimated duration is removed from service cards, appointment displays, summaries, and editing forms. Internal scheduling buffers continue to prevent overlapping resource bookings. Existing appointments retain their booked service name, unit price, combined price, scheduling buffer, and resource.
 - **Completed services:** a separate service record links each completed service to its appointment and pet. Customers see it in their appointments and their pet's history.
-- **Payments:** employees record amount received, method, reference, recorder, and timestamp after completing a visit. Customers view receipts; receipts print or save as PDF. Duplicate payment records are blocked.
+- **Payments:** employees record clinic payments or verify customer online transfers after completing a visit. In **Payments → Wallet settings**, staff set the shop's GCash/Maya account name, mobile number, instructions, and enabled status. Wallets start disabled with empty details; no destination account is invented. Customers transfer using their wallet app, then submit the amount and transaction reference. Submissions stay unpaid until staff checks receipt in the shop's wallet and verifies them. Rejected submissions carry a staff note and can be resubmitted. Pending transfers block duplicate/manual payments. Receipts print or save as PDF after verification or clinic payment recording.
 - **Reports:** employees and administrators see appointment status counts, completed services, payment totals, outstanding payment records, service breakdowns, date filters, and CSV export. Report dates filter appointment dates; collections are payments linked to those appointments.
 - **Accounts:** administrators manage access roles and account status. All roles can update their own name and contact number. Customers receive only their own pets, appointments, health records, service records, and receipts.
-- **Care updates:** confirmed customer visits, pending employee requests, and recorded follow-up reminders appear in the notification panel.
+- **Care updates:** confirmed customer visits, pending employee requests, follow-up reminders, and unread chat messages appear in the notification panel.
+- **Private chat:** customers message the Petopia care team; employees and administrators use a customer inbox. Conversations support staff replies, unread counts, Enter-to-send, Shift+Enter for new lines, and persistent history. Messages refresh every three seconds while the chat page is visible without replacing an unsent draft. Customers cannot read or write another customer's conversation. The care team shares an inbox and read state.
 - **Visit feedback:** customers rate completed visits and optionally leave a comment; they can edit their feedback. Feedback is visible to its author and authorized employees/administrators. Staff can reply, view the average rating, and identify feedback awaiting a reply.
 - **Shared Petopia gallery:** employees and administrators upload captioned grooming photos and videos, optionally tagged to a service. All signed-in customers can browse the same gallery. Staff confirm permission to share and can remove posts. JPG, PNG, WebP, MP4, and WebM files are supported, up to 25 MB each and 100 posts. Uploaded media remains behind authentication, supports video seeking, and persists across restarts.
 - **Responsive UI:** the same navigation, forms, cards, buttons, typography, and status colors serve all three roles. Desktop navigation collapses to an icon rail and remembers the preference; mobile navigation opens as a drawer. Tables scroll within their panels. Dialogs and the mobile drawer manage keyboard focus and support Escape dismissal. Forms include inline validation.
+- **Appearance and motion:** **My account** offers Petopia light, Midnight dark, Soft sage, and Match device themes. A topbar button cycles themes, and the preference is saved on the device and applied before first paint. React and Motion animate navigation, pet detail changes, and dialogs. Device reduced-motion preferences are respected, and receipts use a readable light palette when printed.
 
 ## Walkthrough
 
 1. Sign in as the customer. Open **My pets**, add or edit a pet, upload a photo, and review **About**, **Health records**, and **Visit history**.
-2. Open **Book a visit**, choose a pet, service, and available future time, then send the request. Try **Reschedule** to request a different time.
+2. Open **Book a visit**, choose a service and available future time, then send the request. For **Veterinary consultation**, select several pets to create one group visit. Try **Reschedule** to request a different time.
 3. Sign in as the employee. Open **Appointments**, confirm the request, and inspect **Schedule**. Test **Manage availability** or **Block time**.
-4. Use **Record completed care** to enter service notes, then **Record payment**. Open the generated receipt and use **Print / save PDF**.
+4. Use **Record completed care** to enter service notes. For clinic payment, choose **Record payment**. To demonstrate online transfers, set the shop's wallet details in **Payments → Wallet settings**, return as the customer and submit a transaction reference, then verify receipt as the employee. Open the generated receipt and use **Print / save PDF**.
 5. Open **Petopia gallery** as the employee, upload a photo or video, add a caption, and confirm permission to share.
 6. Return as the customer to inspect the completed service and receipt, leave visit feedback, and browse the shared gallery. Staff can reply in **Customer feedback**.
 7. Sign in as the administrator. Review **Accounts** and **Reports**, apply a date range, and export the totals.
+8. Try **Chat with Petopia** as a customer and **Customer messages** as staff in separate browsers or private windows. Open **My account** to test themes.
 
 ## Project structure
 
 ```text
 server.js                     HTTP server entry point
+client/
+  interface.jsx               React/Motion shell, page, and dialog rendering bridge
+scripts/
+  build.cjs                   Local browser bundling with esbuild
 src/
   config.js                   Seed service menu and constants
   db.js                       Migration, persistence, password hashing, projections
@@ -67,12 +75,16 @@ src/
   http.js                     HTTP body handling, access guards, static files
   routes.js                   Request dispatch and role-filtered bootstrap
   scheduling.js               Duration, opening-day, block, and conflict rules
+  visits.js                   Group-pet selection and visit membership
+  chat.js                     Role-filtered thread summaries and unread counts
   routes/
     accounts.js               Authentication, contact details, administrator access
     pets.js                   Pet profiles, archiving, health records
     appointments.js           Requests, transitions, rescheduling, services, payments
     clinic.js                 Availability, schedule, service menu, reports
     community.js              Visit feedback, staff replies, authenticated gallery media
+    transfers.js              Wallet settings, transfer submissions and verification
+    chat.js                   Private conversation access, messages and read state
 public/
   index.html                  Accessible page and dialog mounts
   app.js                      Navigation and interaction orchestration
@@ -88,7 +100,11 @@ public/
     shell.js                  Role-aware navigation and notifications
     dialogs.js                Focused editing and workflow dialogs
     community-dialogs.js      Feedback and gallery editing dialogs
-    views/                    Authentication, overview, pets, booking, clinic, appointments, community
+    payment-dialogs.js        Wallet transfer, settings and verification dialogs
+    chat.js                   Polling, delivery and updates that preserve drafts
+    themes.js                 Appearance choices and saved preferences
+    theme-init.js             Initial palette before first paint
+    views/                    Authentication, overview, pets, booking, clinic, appointments, community, chat
  tests/                       API integration and browser workflow checks
 ```
 
@@ -105,22 +121,24 @@ npm run format:check
 
 In PowerShell environments that block `npm.ps1`, use `npm.cmd` instead.
 
-API tests use isolated databases and cover permissions, duplicate and overlapping bookings, availability changes, service snapshots, rescheduling, health record validation, payment ownership, receipts, report totals, persistence, role management, feedback privacy/editing/replies, gallery upload validation, protected media ranges, and gallery persistence.
+API tests use isolated databases and cover permissions, duplicate and overlapping bookings, group ownership and per-pet conflicts, availability changes, service snapshots, rescheduling, health record validation, payment ownership, transfer rejection/verification and duplicate prevention, receipts, report totals, persistence, role management, private chat and unread counts, feedback privacy/editing/replies, gallery upload validation, protected media ranges, and gallery persistence.
 
-The browser check uses an installed Google Chrome browser. Use `BROWSER_CHANNEL=msedge` to select Edge (PowerShell: `$env:BROWSER_CHANNEL = 'msedge'`). It exercises all three roles, photo upload without losing a draft, pet edits, health records, booking, rescheduling, completion, payment, receipt PDF, report export, saved sidebar preferences, mobile drawer navigation, gallery photo/video uploads and playback, feedback editing, staff replies, and mobile overflow checks. Screenshots and a receipt PDF are saved in the ignored `artifacts/ui/` directory. Browser and API tests do not touch the application's saved database.
+The browser checks build the client and use an installed Google Chrome browser. Use `BROWSER_CHANNEL=msedge` to select Edge (PowerShell: `$env:BROWSER_CHANNEL = 'msedge'`). They exercise all three roles, photo upload without losing a draft, pet edits, health records, individual and group bookings, rescheduling, both pets' visit histories, completion, clinic payment, Maya transfer verification, receipt PDF, report export, saved sidebar preferences, mobile drawer navigation, gallery photo/video uploads and playback, feedback editing, staff replies, live private chat while preserving a draft, theme persistence/device changes, reduced motion, removed duration labels, and mobile overflow. Screenshots and a receipt PDF are saved in the ignored `artifacts/ui/` directory. Browser and API tests do not touch the application's saved database.
 
 `npm run format` applies the shared Prettier configuration.
+
+`npm run build` regenerates the ignored `public/build/app.js` bundle after editing client code. The modular workflow views still produce escaped markup; React owns the persistent shell and animated page/dialog boundaries. The synchronous rendering bridge preserves existing focus and form-draft behavior. React/Motion and esbuild are local npm dependencies; the browser does not load code from a CDN. The animation integration follows the [Motion React documentation](https://motion.dev/docs/react-animation) and [React createRoot documentation](https://react.dev/reference/react-dom/client/createRoot).
 
 ## Prototype boundaries
 
 This is a substantial functional prototype targeting the requested 80-90% demonstration scope, not a measured production completion percentage. The supplied documents remain the workflow guide; the app does not show development scope banners.
 
-Visit feedback and the shared gallery are user-requested extensions to the Chapter 1 baseline. Their scope stays limited to completed-visit ratings/comments, staff replies, and staff-published media for signed-in customers. They do not add public reviews, customer uploads, social feeds, or media messaging. Update the paper's feature scope if these extensions are included in the evaluated prototype.
+Visit feedback, the shared gallery, group consultations, wallet transfer submissions, private chat, themes, and animations are user-requested extensions to the Chapter 1 baseline. Update the paper's feature scope if these extensions are included in the evaluated prototype.
 
 Nunito Sans is bundled under the SIL Open Font License; its license is retained in `public/assets/fonts/OFL.txt`. The blue/yellow paw mark is a prototype brand symbol, not a reproduction of the store's actual logo.
 
-Payments are recorded at the clinic. The former simulated customer online payment endpoint is disabled; no external payment gateway or online card collection is implemented. Existing payment records remain intact. Product sales and inventory are outside the document scope.
+Online payments use customer-initiated GCash/Maya transfers with manual staff verification. Submitting a reference does not move money or automatically mark a visit paid. No payment gateway, card data collection, wallet API access, or automated reconciliation is implemented. Existing payment records remain intact. Product sales and inventory are outside the document scope.
 
-The seeded prices, 60-minute services, weekend opening days, 5 PM closing time, and one resource per care team are defaults for demonstration. Confirm actual shop prices, durations, capacity, access rules, and payment steps before operational use. Staff can change the service menu, opening days, start times, and blocked availability.
+The seeded prices, internal 60-minute scheduling buffers, weekend opening days, 5 PM closing time, one resource per care team, six-pet consultation limit, and per-pet consultation pricing are defaults for demonstration. Confirm actual shop prices, grouping policy, capacity, access rules, and payment steps before operational use. Staff can change the service menu, wallet details, opening days, start times, and blocked availability.
 
 Remaining production work includes shop acceptance testing, a database designed for multiple server processes, persistent expiring sessions, account recovery, operational audit logs, backups, HTTPS hosting, and real notification delivery. Current sessions are held in memory and sign out on a server restart. The server binds to localhost and is intended for local demonstration.

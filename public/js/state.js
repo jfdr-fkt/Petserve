@@ -9,7 +9,7 @@ export const state = {
   petSpecies: 'all',
   dialog: null,
   draft: {},
-  booking: { serviceId: 'grooming', petId: '', date: '', time: '', note: '' },
+  booking: { serviceId: 'grooming', petId: '', petIds: [], date: '', time: '', note: '' },
   slots: [],
   slotsLoading: false,
   slotError: '',
@@ -21,5 +21,12 @@ export const state = {
   sidebarCollapsed: false,
   mobileMenuOpen: false,
   mediaFile: null,
+  theme: 'light',
+  chatCustomerId: '',
+  chatMessages: [],
+  chatSearch: '',
+  chatDraft: '',
+  chatLoading: false,
+  chatForceScroll: true,
 };
 export const isStaff = () => ['staff', 'admin'].includes(state.data?.user?.role);
