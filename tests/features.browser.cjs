@@ -196,6 +196,16 @@ const { manilaNow } = require('../src/helpers');
     );
     // Reduced motion also stops the decorative loop and skips the welcome scene.
     await customer.locator('.profile-mini [data-action="logout"]').click();
+    await customer.locator('.logout-goodbye').waitFor();
+    assert.equal(
+      await customer
+        .locator('.pet-scene-goodbye')
+        .evaluate((el) => el.getAnimations({ subtree: true }).length),
+      0,
+    );
+    assert.equal(await customer.locator('.side-nav').count(), 0);
+    await customer.locator('.logout-goodbye button').click();
+    await customer.locator('.logout-goodbye').waitFor({ state: 'detached' });
     await customer.locator('form[data-form="auth"]').waitFor();
     assert.equal(
       await customer.locator('.scene-dog').evaluate((el) => getComputedStyle(el).animationName),

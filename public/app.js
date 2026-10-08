@@ -16,7 +16,7 @@ import { createInterface } from '../client/interface.jsx';
 import { chat } from './js/views/chat.js';
 import { startChat, stopChat, sendChat, searchChat } from './js/chat.js';
 import { applyTheme } from './js/themes.js';
-import { loginWelcome } from './js/login-welcome.js';
+import { loginWelcome, logoutGoodbye } from './js/session-scenes.js';
 import { walletDetails } from './js/payment-dialogs.js';
 
 const root = document.querySelector('#app');
@@ -339,13 +339,19 @@ async function handleClick(event) {
       return;
     }
     if (action === 'logout') {
-      stopChat();
-      setMobileMenu(false);
       button.disabled = true;
       await api('/api/auth/logout', 'POST', {});
+      stopChat();
+      slotRequest++;
+      setMobileMenu(false);
       Object.assign(state, {
+        data: { user: null },
         view: 'overview',
+        authMode: 'login',
         report: null,
+        reportFrom: '',
+        reportTo: '',
+        scheduleDate: '',
         selectedPet: '',
         search: '',
         filter: 'all',
@@ -354,6 +360,10 @@ async function handleClick(event) {
         chatMessages: [],
         chatDraft: '',
         chatSearch: '',
+        chatLoading: false,
+        slots: [],
+        slotsLoading: false,
+        slotError: '',
       });
       state.booking = {
         serviceId: 'grooming',
@@ -364,7 +374,10 @@ async function handleClick(event) {
         note: '',
       };
       history.replaceState(null, '', '#overview');
-      await refresh();
+      render();
+      await logoutGoodbye(root);
+      window.scrollTo(0, 0);
+      root.querySelector('[name="email"]')?.focus({ preventScroll: true });
       return;
     }
     if (action === 'notifications') {

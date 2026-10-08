@@ -42,6 +42,7 @@ const cat =
 </g>`;
 
 export function petScene(kind = 'play') {
+  if (kind === 'goodbye') return goodbyeScene();
   const running = kind === 'run';
   return `<svg class="pet-scene pet-scene-${kind}" viewBox="0 0 640 300" ${running ? 'aria-hidden="true"' : 'role="img" aria-label="A happy cartoon dog and cat playing together"'} xmlns="http://www.w3.org/2000/svg">
     <ellipse class="scene-halo" cx="320" cy="152" rx="280" ry="135"/>
@@ -53,5 +54,27 @@ export function petScene(kind = 'play') {
     <g transform="translate(${running ? 20 : 105} 110)"><g class="scene-dog">${dog()}</g></g>
     <g transform="translate(${running ? 285 : 356} 127)"><g class="scene-cat">${cat()}</g></g>
     ${running ? '<g class="scene-speed" fill="none" stroke="#799bbd" stroke-width="3" stroke-linecap="round"><path d="M80 179H31M81 190H51M300 203H273"/></g>' : '<g class="scene-ball"><circle cx="320" cy="230" r="15" fill="#f1c866" stroke="#ae812f" stroke-width="2"/><path d="M306 225Q325 226 329 242M309 240Q318 222 334 226" fill="none" stroke="#fff8ec" stroke-width="3"/></g><g class="scene-butterfly" transform="translate(330 86)"><path d="M0 0Q-19-22-22-4Q-19 10 0 3Q20-16 23-2Q22 12 0 3" fill="#e4aca8"/><path d="M0 0L0 9" stroke="#604d41" stroke-width="2"/></g>'}
+  </svg>`;
+}
+
+function goodbyeScene() {
+  return `<svg class="pet-scene pet-scene-goodbye" viewBox="0 0 640 320" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <ellipse class="scene-goodbye-halo" cx="320" cy="170" rx="275" ry="139"/>
+    <g stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <rect class="scene-house" x="398" y="139" width="185" height="142" rx="12"/>
+      <path class="scene-roof" d="M374 146L488 56L607 146Z"/>
+      <rect class="scene-door" x="493" y="195" width="57" height="86" rx="16"/>
+      <circle cx="537" cy="241" r="4" fill="#f1c866" stroke="none"/>
+      <rect class="scene-window" x="421" y="177" width="44" height="40" rx="9"/>
+      <path class="scene-window-lines" d="M443 178V216M422 197H464"/>
+    </g>
+    <path class="scene-ground" d="M42 283Q209 270 330 282T603 283" fill="none" stroke-width="3" stroke-linecap="round"/>
+    <ellipse class="scene-shadow" cx="188" cy="279" rx="79" ry="7"/>
+    <ellipse class="scene-shadow" cx="400" cy="283" rx="64" ry="7"/>
+    <g transform="translate(70 143)"><g class="scene-dog">${dog()}</g></g>
+    <g transform="translate(315 159)"><g class="scene-cat">${cat()}</g></g>
+    <g class="scene-goodbye-heart scene-goodbye-heart-dog" transform="translate(241 92)"><path d="M0 5C-21-11-32 8-17 21L0 35L17 21C32 8 21-11 0 5Z" fill="#dc9b98"/></g>
+    <g class="scene-goodbye-heart scene-goodbye-heart-cat" transform="translate(361 62)"><path d="M0 5C-16-8-25 7-13 17L0 28L13 17C25 7 16-8 0 5Z" fill="#e9b779"/></g>
+    <g fill="#82a28d" stroke="#557d64" stroke-width="2"><path d="M60 284Q39 255 53 248Q67 253 65 275Q77 260 85 269Q86 280 73 285"/><path d="M589 284Q575 257 588 251Q600 260 596 278"/></g>
   </svg>`;
 }

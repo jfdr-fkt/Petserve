@@ -58,6 +58,7 @@ const { manilaNow } = require('../src/helpers');
     assert.equal(await page.locator('.login-welcome').count(), 0);
     assert.equal(await page.locator('#app').evaluate((el) => el.inert), false);
   };
+  let logoutScreens = 0;
   const logout = async () => {
     await page
       .locator(
@@ -66,7 +67,32 @@ const { manilaNow } = require('../src/helpers');
           : '.profile-mini [data-action="logout"]',
       )
       .click();
+    await page.locator('.logout-goodbye').waitFor();
+    logoutScreens++;
+    assert.equal(await page.locator('.side-nav').count(), 0);
+    assert.equal(await page.locator('#app').evaluate((el) => el.inert), true);
+    assert.equal((await (await page.request.get(base + '/api/bootstrap')).json()).user, null);
+    await noOverflow('Logout screen');
+    if (logoutScreens === 1 || logoutScreens === 3)
+      await page.screenshot({
+        path: path.join(
+          artifacts,
+          logoutScreens === 1 ? 'logout-goodbye.png' : 'logout-goodbye-mobile.png',
+        ),
+      });
+    if (logoutScreens === 2) await page.keyboard.press('Escape');
+    else if (logoutScreens > 2) await page.locator('.logout-goodbye button').click();
+    await page.locator('.logout-goodbye').waitFor({ state: 'detached' });
     await page.locator('form[data-form="auth"]').waitFor();
+    assert.equal(await page.locator('#app').evaluate((el) => el.inert), false);
+    assert.equal(
+      await page.locator('body').evaluate((el) => el.classList.contains('session-scene-open')),
+      false,
+    );
+    assert.equal(
+      await page.locator('[name=email]').evaluate((el) => el === document.activeElement),
+      true,
+    );
   };
   const submitDialog = async () => {
     await page.locator('#modal-root [type=submit]').click();
@@ -398,7 +424,7 @@ const { manilaNow } = require('../src/helpers');
     await page.pdf({ path: path.join(artifacts, 'receipt.pdf'), format: 'A4' });
     assert.deepEqual(errors, [], 'No browser or CSP errors');
     console.log(
-      'Browser checks passed: all roles, pet login loop and welcome/skip/Escape, immediate navigation, admin shift assignment/edit/removal, employee read-only shifts, collapsible navigation, gallery photo/video playback, feedback, pets, booking, services, payments, receipts, reports, and mobile layouts.',
+      'Browser checks passed: all roles, pet login and distinct logout scenes with skip/Escape/automatic return, signed-out session and focus cleanup, immediate navigation, admin shifts, employee read-only shifts, navigation, gallery, feedback, pets, booking, services, payments, receipts, reports, and mobile layouts.',
     );
     console.log(`Screenshots: ${artifacts}`);
   } finally {

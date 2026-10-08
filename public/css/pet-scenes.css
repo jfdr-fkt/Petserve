@@ -59,7 +59,7 @@
 .pet-scene-run .scene-speed {
   animation: pet-speed 0.3s ease-in-out infinite alternate;
 }
-.login-welcome {
+.session-scene {
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -69,19 +69,86 @@
   padding: 24px;
   overflow: auto;
 }
-.login-welcome-card {
+.session-scene-card {
   width: min(100%, 660px);
   text-align: center;
 }
-.login-welcome-card h1 {
+.session-scene-card h1 {
   font-size: clamp(28px, 4vw, 38px);
   margin: 18px 0 10px;
 }
-.login-welcome-card p {
+.session-scene-card p {
   margin-bottom: 28px;
 }
-.welcome-open {
+.session-scene-open {
   overflow: hidden;
+}
+.logout-goodbye {
+  background: var(--surface);
+}
+.scene-goodbye-halo {
+  fill: var(--peach);
+}
+.scene-house {
+  fill: var(--surface);
+  stroke: var(--primary);
+}
+.scene-roof {
+  fill: var(--accent);
+  stroke: var(--sand-text);
+}
+.scene-door {
+  fill: var(--primary);
+  stroke: var(--primary);
+}
+.scene-window {
+  fill: var(--tint);
+  stroke: var(--primary);
+}
+.scene-window-lines {
+  fill: none;
+  stroke: var(--primary);
+}
+.pet-scene-goodbye .pet-leg-near-front {
+  animation: pet-goodbye-wave 0.65s ease-in-out infinite alternate;
+}
+.pet-scene-goodbye .pet-head {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pet-goodbye-nod 1.2s ease-in-out infinite alternate;
+}
+.scene-goodbye-heart-dog path {
+  animation: pet-goodbye-heart 1.8s ease-in-out infinite;
+}
+.scene-goodbye-heart-cat path {
+  animation: pet-goodbye-heart 1.8s 0.3s ease-in-out infinite;
+}
+@keyframes pet-goodbye-wave {
+  from {
+    transform: rotate(-65deg);
+  }
+  to {
+    transform: rotate(-95deg);
+  }
+}
+@keyframes pet-goodbye-nod {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(4deg);
+  }
+}
+@keyframes pet-goodbye-heart {
+  0%,
+  100% {
+    transform: translateY(5px);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(-9px);
+    opacity: 1;
+  }
 }
 @keyframes pet-tail-wag {
   from {

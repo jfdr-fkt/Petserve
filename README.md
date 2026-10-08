@@ -47,7 +47,7 @@ The sign-in page includes a collapsible demo account picker. Registration create
 - **Visit feedback:** customers rate completed visits and optionally leave a comment; they can edit their feedback. Feedback is visible to its author and authorized employees/administrators. Staff can reply, view the average rating, and identify feedback awaiting a reply.
 - **Shared Petopia gallery:** employees and administrators upload captioned grooming photos and videos, optionally tagged to a service. All signed-in customers can browse the same gallery. Staff confirm permission to share and can remove posts. JPG, PNG, WebP, MP4, and WebM files are supported, up to 25 MB each and 100 posts. Uploaded media remains behind authentication, supports video seeking, and persists across restarts.
 - **Responsive UI:** the same navigation, forms, cards, buttons, typography, and status colors serve all three roles. Desktop navigation collapses to an icon rail and remembers the preference; mobile navigation opens as a drawer. Tables scroll within their panels. Dialogs and the mobile drawer manage keyboard focus and support Escape dismissal. Forms include inline validation.
-- **Appearance and sign-in:** a simple dropdown inside **My account** offers Petopia light, Midnight dark, Soft sage, and Match device themes. Preferences are saved on the device and applied before first paint. Navigation, pet tabs, and dialogs open immediately without fade, slide, or scale effects. The roomier sign-in page has a looping cartoon pet scene; successful sign-in shows a separate 1.8-second running-pet welcome with a skip button and Escape dismissal before opening the dashboard. Reduced-motion preferences stop the loop and skip the welcome. Receipts use a readable light palette when printed.
+- **Appearance and session screens:** a simple dropdown inside **My account** offers Petopia light, Midnight dark, Soft sage, and Match device themes. Preferences are saved on the device and applied before first paint. Navigation, pet tabs, and dialogs open immediately without fade, slide, or scale effects. The roomier sign-in page has a looping cartoon pet scene; successful sign-in shows a separate 1.8-second running-pet welcome. Successful sign-out clears private workspace data and shows a distinct scene with waving pets outside a little house, then returns to login after 2.4 seconds. Both screens offer a skip button and Escape dismissal. Reduced-motion preferences stop the login loop, skip the welcome, and display a static goodbye for one second. Receipts use a readable light palette when printed.
 
 ## Walkthrough
 
@@ -104,7 +104,7 @@ public/
     payment-dialogs.js        Wallet transfer, settings and verification dialogs
     chat.js                   Polling, delivery and updates that preserve drafts
     pet-scenes.js             Local cartoon dog/cat vector scenes
-    login-welcome.js           Brief post-login scene, skip, and focus management
+    session-scenes.js         Login/logout scenes, skip, focus management and cleanup
     shift-schedule.js          Shift display and administrator editing dialogs
     themes.js                 Theme dropdown and saved preferences
     theme-init.js             Initial palette before first paint
@@ -131,7 +131,7 @@ The browser checks build the client and use an installed Google Chrome browser. 
 
 `npm run format` applies the shared Prettier configuration.
 
-`npm run build` regenerates the ignored `public/build/app.js` bundle after editing client code. The modular workflow views still produce escaped markup; React owns the persistent shell and dialog rendering. The synchronous rendering bridge preserves existing focus and form-draft behavior. React and esbuild are local npm dependencies; the browser does not load code from a CDN. Pet animation is isolated to local SVG artwork and CSS keyframes on the login screen; it does not run during workspace navigation.
+`npm run build` regenerates the ignored `public/build/app.js` bundle after editing client code. The modular workflow views still produce escaped markup; React owns the persistent shell and dialog rendering. The synchronous rendering bridge preserves existing focus and form-draft behavior. React and esbuild are local npm dependencies; the browser does not load code from a CDN. Pet animation is isolated to local SVG artwork and CSS keyframes on sign-in and sign-out screens; it does not run during workspace navigation.
 
 ## Prototype boundaries
 
