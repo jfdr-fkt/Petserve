@@ -177,10 +177,120 @@
 }
 .chat-composer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   padding: 18px 22px;
   border-top: 1px solid var(--border);
+}
+.chat-message-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.chat-delete {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.chat-delete svg {
+  width: 16px;
+  height: 16px;
+}
+.chat-media {
+  display: block;
+  width: 280px;
+  max-width: 100%;
+  height: auto;
+  max-height: 260px;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--subtle);
+  margin: 8px 0;
+}
+.chat-message .chat-removed {
+  font-style: italic;
+  color: var(--muted);
+}
+.chat-composer-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chat-attach:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.chat-attachment-draft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--tint);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.chat-attachment-draft img,
+.chat-attachment-draft video {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.chat-attachment-draft > div {
+  min-width: 0;
+  flex: 1;
+}
+.chat-attachment-draft strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+}
+.chat-attachment-draft small {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.chat-attachment-draft button {
+  flex-shrink: 0;
+}
+#chat-attachment-preview:empty {
+  display: none;
+}
+.account-danger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px;
+  margin-top: 24px;
+  max-width: 850px;
+}
+.account-danger h2 {
+  font-size: var(--text-heading);
+}
+.account-danger p {
+  font-size: var(--text-sm);
+  margin-top: 6px;
+}
+.account-danger .btn {
+  color: var(--danger);
+}
+.account-deletion-note {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--notice);
+  border-radius: 12px;
+  font-size: var(--text-sm);
+}
+@media (max-width: 720px) {
+  .account-danger {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 .chat-composer textarea {
   resize: vertical;

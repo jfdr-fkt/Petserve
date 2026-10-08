@@ -28,5 +28,8 @@ export const state = {
   chatDraft: '',
   chatLoading: false,
   chatForceScroll: true,
+  chatFile: null,
+  chatPreview: '',
+  chatSending: false,
 };
 export const isStaff = () => ['staff', 'admin'].includes(state.data?.user?.role);

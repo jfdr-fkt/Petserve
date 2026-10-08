@@ -21,6 +21,18 @@ export async function uploadMedia(file, details) {
   if (!response.ok) throw new Error(body.error || 'The media could not be uploaded.');
   return body;
 }
+export async function uploadChatMedia(customerId, file, text) {
+  const caption = btoa(String.fromCharCode(...new TextEncoder().encode(text)));
+  const response = await fetch(`/api/chat/${customerId}/media`, {
+    method: 'POST',
+    headers: { 'Content-Type': file.type, 'X-Message-Caption': caption },
+    body: file,
+    credentials: 'same-origin',
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'The attachment could not be sent.');
+  return result;
+}
 export function toast(message, error = false) {
   const element = document.querySelector('#toast');
   element.innerHTML = `<span>${error ? '!' : '✓'}</span> ${escapeHTML(message)}`;

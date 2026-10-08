@@ -51,7 +51,7 @@ function requireJson(req) {
     throw httpError(403, 'Cross-origin request blocked.');
 }
 
-function serveStatic(res, pathname) {
+function serveStatic(res, pathname, req) {
   const relative = pathname === '/' ? 'index.html' : pathname.slice(1);
 
   // Allow index.html, styles.css, favicon.svg, and anything under js/
@@ -61,6 +61,7 @@ function serveStatic(res, pathname) {
     '.js': 'text/javascript',
     '.svg': 'image/svg+xml',
     '.woff2': 'font/woff2',
+    '.mp4': 'video/mp4',
   };
   const ext = path.extname(relative);
   const mime = mimeMap[ext];
@@ -71,6 +72,7 @@ function serveStatic(res, pathname) {
     throw httpError(404, 'Page not found.');
   }
   if (!fs.existsSync(file)) throw httpError(404, 'Page not found.');
+  if (ext === '.mp4') return require('./media').serveMedia(req, res, file, mime);
 
   const bytes = fs.readFileSync(file);
   res.writeHead(200, {

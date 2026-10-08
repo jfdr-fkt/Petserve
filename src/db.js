@@ -102,7 +102,7 @@ async function seedDatabase(file) {
 }
 
 async function migrate(db) {
-  db.version = 5;
+  db.version = 6;
   db.healthLogs ||= [];
   db.services ||= SERVICES.map((service) => ({ ...service }));
   db.schedule ||= { weekdays: [0, 6], timeSlots: require('./config').TIME_SLOTS, blocked: [] };
@@ -111,6 +111,19 @@ async function migrate(db) {
   db.feedback ||= [];
   db.gallery ||= [];
   db.chats ||= [];
+  for (const thread of db.chats)
+    for (const message of thread.messages) {
+      if (message.senderId) continue;
+      const candidates = db.users.filter(
+        (account) => account.name === message.senderName && account.role === message.role,
+      );
+      message.senderId =
+        message.role === 'customer'
+          ? thread.customerId
+          : candidates.length === 1
+            ? candidates[0].id
+            : '';
+    }
   db.paymentRequests ||= [];
   db.wallets ||= Object.fromEntries(
     ['GCash', 'Maya'].map((method) => [
@@ -199,7 +212,7 @@ function appointmentView(db, appointment) {
     petNames: pets.map((p) => p.name),
     petName: pets.map((p) => p.name).join(', ') || pet?.name || 'Pet',
     unitPrice: appointment.unitPrice ?? appointment.basePrice,
-    customerName: owner?.name ?? 'Customer',
+    customerName: owner?.name ?? 'Deleted account',
     customerId: appointment.customerId,
     status: appointment.status,
     note: appointment.note,

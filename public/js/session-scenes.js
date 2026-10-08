@@ -19,8 +19,20 @@ function showSessionScene(
     document.body.classList.add('session-scene-open');
     document.body.append(screen);
     const button = screen.querySelector('button');
-    const finish = () => {
+    let finishing = false;
+    const finish = async () => {
+      if (finishing) return;
+      finishing = true;
       clearTimeout(timer);
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        await screen
+          .animate([{ opacity: getComputedStyle(screen).opacity }, { opacity: 0 }], {
+            duration: 160,
+            easing: 'ease-out',
+            fill: 'forwards',
+          })
+          .finished.catch(() => {});
+      }
       screen.remove();
       root.inert = previouslyInert;
       document.body.classList.remove('session-scene-open');
@@ -54,10 +66,10 @@ export function loginWelcome(root) {
   });
 }
 
-export function logoutGoodbye(root) {
+export function logoutGoodbye(root, deleted = false) {
   return showSessionScene(root, {
     className: 'logout-goodbye',
-    eyebrow: 'SIGNED OUT. SEE YOU SOON.',
+    eyebrow: deleted ? 'ACCOUNT DELETED' : 'SIGNED OUT. SEE YOU SOON.',
     scene: 'goodbye',
     title: 'Until the next happy visit.',
     description: 'Take care of those little paws. We’ll be here when you need us.',

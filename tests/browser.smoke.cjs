@@ -49,6 +49,9 @@ const { manilaNow } = require('../src/helpers');
     await page.locator('.login-welcome').waitFor();
     assert.equal(await page.locator('#app').evaluate((el) => el.inert), true);
     if (role === 'customer') {
+      await page.waitForFunction(
+        () => Number(getComputedStyle(document.querySelector('.login-welcome')).opacity) > 0.99,
+      );
       await page.screenshot({ path: path.join(artifacts, 'login-welcome.png') });
       await page.locator('.login-welcome button').click();
     } else if (role === 'admin') {
@@ -73,6 +76,10 @@ const { manilaNow } = require('../src/helpers');
     assert.equal(await page.locator('#app').evaluate((el) => el.inert), true);
     assert.equal((await (await page.request.get(base + '/api/bootstrap')).json()).user, null);
     await noOverflow('Logout screen');
+    if (logoutScreens === 1 || logoutScreens === 3)
+      await page.waitForFunction(
+        () => Number(getComputedStyle(document.querySelector('.logout-goodbye')).opacity) > 0.99,
+      );
     if (logoutScreens === 1 || logoutScreens === 3)
       await page.screenshot({
         path: path.join(

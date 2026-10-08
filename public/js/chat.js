@@ -1,6 +1,12 @@
 import { state } from './state.js';
-import { api, toast } from './api.js';
-import { threadList, chatMessages } from './views/chat.js';
+import { api, toast, uploadChatMedia } from './api.js';
+import {
+  threadList,
+  chatMessages,
+  chatMessageMarkup,
+  messageVersion,
+  chatAttachmentPreview,
+} from './views/chat.js';
 let timer,
   revision = 0,
   polling = false;
@@ -26,21 +32,43 @@ export async function loadChat() {
   const thread = await api(`/api/chat/${customerId}`);
   if (current !== revision || customerId !== state.chatCustomerId || state.view !== 'chat') return;
   const messages = document.querySelector('#chat-messages');
-  const changed =
-    state.chatMessages.map((m) => m.id).join() !== thread.messages.map((m) => m.id).join();
   const nearEnd =
     messages && messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80;
   state.chatMessages = thread.messages;
   state.chatLoading = false;
-  if (messages && (changed || !messages.querySelector('.chat-message'))) {
-    messages.innerHTML = chatMessages();
+  if (messages && thread.messages.length) {
+    const nodes = new Map(
+      [...messages.querySelectorAll('[data-message-id]')].map((element) => [
+        element.dataset.messageId,
+        element,
+      ]),
+    );
+    if (!nodes.size) messages.replaceChildren();
+    for (const [id, node] of nodes)
+      if (!thread.messages.some((message) => message.id === id)) node.remove();
+    thread.messages.forEach((message, index) => {
+      let node = nodes.get(message.id);
+      if (!node || node.dataset.version !== messageVersion(message)) {
+        const template = document.createElement('template');
+        template.innerHTML = chatMessageMarkup(message);
+        const replacement = template.content.firstElementChild;
+        if (node) node.replaceWith(replacement);
+        node = replacement;
+      }
+      if (messages.children[index] !== node)
+        messages.insertBefore(node, messages.children[index] || null);
+    });
     if (nearEnd || state.chatForceScroll) messages.scrollTop = messages.scrollHeight;
     state.chatForceScroll = false;
+  } else if (messages && !messages.querySelector('.empty-state')) {
+    messages.innerHTML = chatMessages();
   }
   const threads = await api('/api/chat');
   if (current !== revision || state.view !== 'chat') return;
-  state.data.chatThreads = threads.threads;
-  updateThreadList();
+  if (JSON.stringify(state.data.chatThreads) !== JSON.stringify(threads.threads)) {
+    state.data.chatThreads = threads.threads;
+    updateThreadList();
+  }
   const title = document.querySelector('#chat-title');
   if (title && state.data.user.role !== 'customer') title.textContent = thread.customerName;
   const connection = document.querySelector('#chat-connection');
@@ -68,18 +96,64 @@ export function startChat() {
   poll();
 }
 export async function sendChat(text) {
-  if (!text.trim()) throw new Error('Write a message first.');
+  if (!text.trim() && !state.chatFile)
+    throw new Error('Write a message or attach a photo or video.');
+  if (state.chatSending) return;
   const customerId = state.chatCustomerId;
-  await api(`/api/chat/${customerId}`, 'POST', { text });
-  if (state.view !== 'chat' || customerId !== state.chatCustomerId) return;
-  state.chatDraft = '';
-  state.chatForceScroll = true;
-  const input = document.querySelector('#chat-text');
-  if (input) {
-    input.value = '';
-    input.focus();
+  composerBusy(true);
+  try {
+    if (state.chatFile) await uploadChatMedia(customerId, state.chatFile, text);
+    else await api(`/api/chat/${customerId}`, 'POST', { text });
+    if (state.view !== 'chat' || customerId !== state.chatCustomerId) return;
+    state.chatDraft = '';
+    clearChatAttachment();
+    state.chatForceScroll = true;
+    const input = document.querySelector('#chat-text');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+    await loadChat();
+  } finally {
+    composerBusy(false);
   }
-  await loadChat();
+}
+function composerBusy(busy) {
+  state.chatSending = busy;
+  const form = document.querySelector('form[data-form="chat"]');
+  if (!form) return;
+  form.setAttribute('aria-busy', String(busy));
+  form.querySelector('textarea').readOnly = busy;
+  form.querySelector('[type=submit]').disabled = busy;
+  form.querySelector('[type=submit] span').textContent = busy ? 'Sending…' : 'Send';
+  form.querySelector('[type=file]').disabled = busy;
+  const remove = form.querySelector('[data-action="chat-attachment-remove"]');
+  if (remove) remove.disabled = busy;
+}
+export function clearChatAttachment() {
+  if (state.chatPreview) URL.revokeObjectURL(state.chatPreview);
+  state.chatFile = null;
+  state.chatPreview = '';
+  document.querySelector('#chat-attachment-preview')?.replaceChildren();
+  const input = document.querySelector('#chat-file');
+  if (input) input.value = '';
+}
+export function chooseChatAttachment(file) {
+  if (!file) return;
+  if (
+    !['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'].includes(file.type) ||
+    file.size > 25 * 1024 * 1024
+  )
+    throw new Error('Choose a JPG, PNG, WebP, MP4 or WebM file up to 25 MB.');
+  clearChatAttachment();
+  state.chatFile = file;
+  state.chatPreview = URL.createObjectURL(file);
+  const preview = document.querySelector('#chat-attachment-preview');
+  if (preview) preview.innerHTML = chatAttachmentPreview();
+}
+export async function deleteChatMessage(id) {
+  await api(`/api/chat/${state.chatCustomerId}/messages/${id}`, 'DELETE');
+  if (state.view === 'chat') await loadChat();
 }
 export function reportChatError(error) {
   toast(error.message, true);

@@ -4,6 +4,7 @@ const { httpError } = require('./helpers');
 const { chatThreads } = require('./chat');
 const handlers = [
   require('./routes/accounts'),
+  require('./routes/account-deletion'),
   require('./routes/pets'),
   require('./routes/appointments'),
   require('./routes/clinic'),
@@ -11,6 +12,7 @@ const handlers = [
   require('./routes/community'),
   require('./routes/transfers'),
   require('./routes/chat'),
+  require('./routes/chat-media'),
 ];
 
 function createHandler(db, sessions, persist, uploadsDir) {
@@ -26,7 +28,7 @@ function createHandler(db, sessions, persist, uploadsDir) {
       const pathname = url.pathname;
       if (!pathname.startsWith('/api/')) {
         if (req.method !== 'GET') throw httpError(405, 'Method not allowed.');
-        return serveStatic(res, pathname);
+        return serveStatic(res, pathname, req);
       }
       const token = /(?:^|;\s*)petserve_session=([a-f0-9]{64})(?:;|$)/.exec(
         req.headers.cookie || '',

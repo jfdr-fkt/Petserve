@@ -14,10 +14,19 @@ import { icon } from './js/components.js';
 import { todayManila } from './js/utils.js';
 import { createInterface } from '../client/interface.jsx';
 import { chat } from './js/views/chat.js';
-import { startChat, stopChat, sendChat, searchChat } from './js/chat.js';
+import {
+  startChat,
+  stopChat,
+  sendChat,
+  searchChat,
+  clearChatAttachment,
+  chooseChatAttachment,
+  deleteChatMessage,
+} from './js/chat.js';
 import { applyTheme } from './js/themes.js';
 import { loginWelcome, logoutGoodbye } from './js/session-scenes.js';
 import { walletDetails } from './js/payment-dialogs.js';
+import './js/experience.js';
 
 const root = document.querySelector('#app');
 const modalRoot = document.querySelector('#modal-root');
@@ -86,6 +95,40 @@ function closeDialog() {
 async function refresh() {
   state.data = await api('/api/bootstrap');
   render();
+}
+async function finishSession(deleted = false) {
+  stopChat();
+  clearChatAttachment();
+  slotRequest++;
+  setMobileMenu(false);
+  Object.assign(state, {
+    data: { user: null },
+    view: 'overview',
+    authMode: 'login',
+    report: null,
+    reportFrom: '',
+    reportTo: '',
+    scheduleDate: '',
+    selectedPet: '',
+    search: '',
+    filter: 'all',
+    notifications: false,
+    chatCustomerId: '',
+    chatMessages: [],
+    chatDraft: '',
+    chatSearch: '',
+    chatLoading: false,
+    chatSending: false,
+    slots: [],
+    slotsLoading: false,
+    slotError: '',
+  });
+  state.booking = { serviceId: 'grooming', petId: '', petIds: [], date: '', time: '', note: '' };
+  history.replaceState(null, '', '#overview');
+  render();
+  await logoutGoodbye(root, deleted);
+  window.scrollTo(0, 0);
+  root.querySelector('[name="email"]')?.focus({ preventScroll: true });
 }
 async function navigate(view) {
   stopChat();
@@ -271,6 +314,7 @@ async function handleClick(event) {
       return;
     }
     if (action === 'chat-select') {
+      clearChatAttachment();
       state.chatCustomerId = id;
       state.chatMessages = [];
       state.chatDraft = '';
@@ -281,11 +325,24 @@ async function handleClick(event) {
       return;
     }
     if (action === 'chat-open') {
+      clearChatAttachment();
       state.chatCustomerId = state.data.user.role === 'customer' ? state.data.user.id : id;
       state.chatMessages = [];
       state.chatDraft = '';
       state.chatLoading = true;
       await navigate('chat');
+      return;
+    }
+    if (action === 'chat-attachment-remove') {
+      clearChatAttachment();
+      return;
+    }
+    if (action === 'chat-message-delete') {
+      openDialog('chat-delete', id);
+      return;
+    }
+    if (action === 'account-delete') {
+      openDialog('account-delete', id);
       return;
     }
     if (action === 'sidebar-toggle') {
@@ -341,43 +398,7 @@ async function handleClick(event) {
     if (action === 'logout') {
       button.disabled = true;
       await api('/api/auth/logout', 'POST', {});
-      stopChat();
-      slotRequest++;
-      setMobileMenu(false);
-      Object.assign(state, {
-        data: { user: null },
-        view: 'overview',
-        authMode: 'login',
-        report: null,
-        reportFrom: '',
-        reportTo: '',
-        scheduleDate: '',
-        selectedPet: '',
-        search: '',
-        filter: 'all',
-        notifications: false,
-        chatCustomerId: '',
-        chatMessages: [],
-        chatDraft: '',
-        chatSearch: '',
-        chatLoading: false,
-        slots: [],
-        slotsLoading: false,
-        slotError: '',
-      });
-      state.booking = {
-        serviceId: 'grooming',
-        petId: '',
-        petIds: [],
-        date: '',
-        time: '',
-        note: '',
-      };
-      history.replaceState(null, '', '#overview');
-      render();
-      await logoutGoodbye(root);
-      window.scrollTo(0, 0);
-      root.querySelector('[name="email"]')?.focus({ preventScroll: true });
+      await finishSession();
       return;
     }
     if (action === 'notifications') {
@@ -574,6 +595,15 @@ async function handleChange(event) {
     applyTheme(target.value);
     return;
   }
+  if (target.id === 'chat-file') {
+    try {
+      chooseChatAttachment(target.files?.[0]);
+    } catch (error) {
+      target.value = '';
+      toast(error.message, true);
+    }
+    return;
+  }
   if (target.name === 'method' && state.dialog?.type === 'online-payment') {
     state.draft.method = target.value;
     const details = document.querySelector('#wallet-details');
@@ -664,6 +694,24 @@ async function handleSubmit(event) {
         await sendChat(values.chatText);
         submit.disabled = false;
         return;
+      case 'chat-delete':
+        await deleteChatMessage(id);
+        closeDialog();
+        toast('Message deleted.');
+        return;
+      case 'account-delete': {
+        const result = await api(id ? `/api/users/${id}` : '/api/account', 'DELETE', {
+          password: values.password,
+          confirm: values.confirm === 'on',
+        });
+        closeDialog();
+        if (result.signedOut) {
+          await finishSession(true);
+          return;
+        }
+        message = 'Account deleted.';
+        break;
+      }
       case 'online-payment':
         await api(`/api/appointments/${id}/online-payment`, 'POST', values);
         message = 'Transfer submitted. The team will verify the payment.';

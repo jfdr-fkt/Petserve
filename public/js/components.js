@@ -3,6 +3,8 @@ import { escapeHTML as e, titleCase, money, dateLabel, timeLabel } from './utils
 export { serviceIcon };
 
 const paths = {
+  attach: '<path d="m9 13 6-6a3 3 0 0 1 4 4l-8 8a5 5 0 0 1-7-7l9-9"/>',
+  trash: '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>',
   chat: '<path d="M4 4h16v13H9l-5 4z"/><path d="M8 8h8M8 12h5"/>',
   send: '<path d="m3 3 18 9-18 9 4-9zM7 12h14"/>',
   theme: '<path d="M21 13a9 9 0 0 1-10-10 9 9 0 1 0 10 10z"/>',

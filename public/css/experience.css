@@ -1,0 +1,51 @@
+.ambient-surface {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #101820f5;
+  display: grid;
+  place-items: center;
+  padding: 56px 24px 24px;
+}
+.ambient-surface video {
+  width: min(100%, 1100px);
+  max-height: calc(100dvh - 100px);
+  background: #000;
+  border-radius: 14px;
+}
+.ambient-close {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  background: #ffffff20;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+}
+body {
+  transform-origin: 50% var(--surface-axis, 50dvh);
+}
+.surface-reflected {
+  transform: rotate(0.5turn);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ambient-surface {
+    animation: ambient-enter 180ms ease-out;
+  }
+}
+@keyframes ambient-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.brand-mark {
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}

@@ -1,7 +1,7 @@
 const { send, readBody, requireUser, requireJson } = require('../http');
 const { clean, httpError } = require('../helpers');
 const { newId, now } = require('../db');
-const { chatThreads } = require('../chat');
+const { chatThreads, chatMessage } = require('../chat');
 
 module.exports = async ({ req, res, pathname, db, user, persist }) => {
   if (pathname === '/api/chat' && req.method === 'GET') {
@@ -26,6 +26,15 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
     const data = await readBody(req);
     if (typeof data.text !== 'string' || !clean(data.text, 2000) || data.text.length > 2000)
       throw httpError(400, 'Write a message up to 2,000 characters.');
+    if (
+      !db.users.includes(user) ||
+      user.disabled ||
+      !db.users.includes(customer) ||
+      customer.disabled ||
+      customer.role !== 'customer'
+    )
+      throw httpError(403, 'This conversation is no longer available.');
+    thread = db.chats.find((item) => item.customerId === customerId);
     if (!thread) {
       thread = { id: newId(), customerId, messages: [], customerReadCount: 0, staffReadCount: 0 };
       db.chats.push(thread);
@@ -33,6 +42,7 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
     thread.messages.push({
       id: newId(),
       text: clean(data.text, 2000),
+      senderId: user.id,
       senderName: user.name,
       role: user.role,
       createdAt: now(),
@@ -46,7 +56,7 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
   send(res, req.method === 'POST' ? 201 : 200, {
     customerId,
     customerName: customer.name,
-    messages: thread?.messages || [],
+    messages: (thread?.messages || []).map((message) => chatMessage(message, customerId, user)),
   });
   return true;
 };

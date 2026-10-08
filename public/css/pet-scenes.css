@@ -24,7 +24,7 @@
 .pet-tail {
   transform-box: fill-box;
   transform-origin: 100% 85%;
-  animation: pet-tail-wag 0.9s ease-in-out infinite alternate;
+  animation: pet-tail-wag 1.2s ease-in-out infinite alternate;
 }
 .pet-leg {
   transform-box: fill-box;
@@ -43,18 +43,25 @@
   animation: pet-butterfly 6s ease-in-out infinite;
 }
 .pet-scene-run .scene-dog {
-  animation: pet-dog-run 1.6s ease-in-out both;
+  animation: pet-dog-run 2s linear both;
 }
 .pet-scene-run .scene-cat {
-  animation: pet-cat-run 1.6s ease-in-out both;
+  animation: pet-cat-run 2s linear both;
 }
 .pet-scene-run .pet-leg-back,
 .pet-scene-run .pet-leg-near-front {
-  animation: pet-stride 0.24s ease-in-out infinite alternate;
+  animation: pet-stride 0.29s ease-in-out infinite alternate;
 }
 .pet-scene-run .pet-leg-front,
 .pet-scene-run .pet-leg-near-back {
-  animation: pet-stride 0.24s ease-in-out infinite alternate-reverse;
+  animation: pet-stride 0.29s ease-in-out infinite alternate-reverse;
+}
+.pet-scene-run .pet-dog,
+.pet-scene-run .pet-cat {
+  animation: pet-run-bob 0.58s ease-in-out infinite;
+}
+.pet-scene-run .pet-cat {
+  animation-delay: -0.145s;
 }
 .pet-scene-run .scene-speed {
   animation: pet-speed 0.3s ease-in-out infinite alternate;
@@ -110,12 +117,12 @@
   stroke: var(--primary);
 }
 .pet-scene-goodbye .pet-leg-near-front {
-  animation: pet-goodbye-wave 0.65s ease-in-out infinite alternate;
+  animation: pet-goodbye-wave 0.9s ease-in-out infinite alternate;
 }
 .pet-scene-goodbye .pet-head {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: pet-goodbye-nod 1.2s ease-in-out infinite alternate;
+  animation: pet-goodbye-nod 1.8s ease-in-out infinite alternate;
 }
 .scene-goodbye-heart-dog path {
   animation: pet-goodbye-heart 1.8s ease-in-out infinite;
@@ -160,35 +167,40 @@
 }
 @keyframes pet-play-bounce {
   0%,
-  45%,
   100% {
     transform: translateY(0);
   }
-  25% {
-    transform: translateY(-8px) rotate(-2deg);
+  50% {
+    transform: translateY(-4px) rotate(-1deg);
   }
 }
 @keyframes pet-cat-look {
   0%,
-  70%,
   100% {
     transform: rotate(0);
   }
-  40% {
-    transform: rotate(-3deg) translateY(-3px);
+  50% {
+    transform: rotate(-2deg) translateY(-2px);
   }
 }
 @keyframes pet-ball-bounce {
   0%,
-  50%,
   100% {
     transform: translate(0, 0);
   }
-  25% {
-    transform: translate(12px, -30px);
+  50% {
+    transform: translate(6px, -16px);
   }
-  75% {
-    transform: translate(-10px, -12px);
+}
+.session-scene {
+  animation: session-arrive 160ms ease-out both;
+}
+@keyframes session-arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 @keyframes pet-butterfly {
@@ -202,24 +214,24 @@
 }
 @keyframes pet-stride {
   from {
-    transform: rotate(-24deg);
+    transform: rotate(-16deg);
   }
   to {
-    transform: rotate(24deg);
+    transform: rotate(16deg);
+  }
+}
+@keyframes pet-run-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
   }
 }
 @keyframes pet-dog-run {
   0% {
-    transform: translate(-30px, 0);
-  }
-  25% {
-    transform: translate(10px, -8px);
-  }
-  50% {
-    transform: translate(60px, 0);
-  }
-  75% {
-    transform: translate(110px, -8px);
+    transform: translate(-40px, 0);
   }
   100% {
     transform: translate(160px, 0);
@@ -227,19 +239,10 @@
 }
 @keyframes pet-cat-run {
   0% {
-    transform: translate(-30px, 0);
-  }
-  25% {
-    transform: translate(10px, 0);
-  }
-  50% {
-    transform: translate(60px, -9px);
-  }
-  75% {
-    transform: translate(110px, 0);
+    transform: translate(-40px, 0);
   }
   100% {
-    transform: translate(160px, -4px);
+    transform: translate(160px, 0);
   }
 }
 @keyframes pet-speed {

@@ -11,7 +11,7 @@ npm install
 npm start
 ```
 
-Open **http://127.0.0.1:3000**. Startup builds the local React browser bundle automatically; `node server.js` also builds it before starting. Saved records, transfer submissions, wallet settings, and chat conversations live in `data/db.json`, and gallery files live in `data/uploads/`. An older database is migrated automatically without resetting its pets, bookings, or payments. Stop the server before copying both the database and uploads directory for a backup.
+Open **http://127.0.0.1:3000**. Startup builds the local React browser bundle automatically; `node server.js` also builds it before starting. Saved records, transfer submissions, wallet settings, and chat conversations live in `data/db.json`. Gallery files live in `data/uploads/` and private chat attachments in `data/uploads/chat/`. An older database is migrated automatically without resetting its pets, bookings, or payments. Stop the server before copying both the database and uploads directory for a backup.
 
 To use another port in PowerShell:
 
@@ -41,12 +41,12 @@ The sign-in page includes a collapsible demo account picker. Registration create
 - **Completed services:** a separate service record links each completed service to its appointment and pet. Customers see it in their appointments and their pet's history.
 - **Payments:** employees record clinic payments or verify customer online transfers after completing a visit. In **Payments → Wallet settings**, staff set the shop's GCash/Maya account name, mobile number, instructions, and enabled status. Wallets start disabled with empty details; no destination account is invented. Customers transfer using their wallet app, then submit the amount and transaction reference. Submissions stay unpaid until staff checks receipt in the shop's wallet and verifies them. Rejected submissions carry a staff note and can be resubmitted. Pending transfers block duplicate/manual payments. Receipts print or save as PDF after verification or clinic payment recording.
 - **Reports:** employees and administrators see appointment status counts, completed services, payment totals, outstanding payment records, service breakdowns, date filters, and CSV export. Report dates filter appointment dates; collections are payments linked to those appointments.
-- **Accounts:** administrators manage access roles and account status. All roles can update their own name and contact number. Customers receive only their own pets, appointments, health records, service records, and receipts.
+- **Accounts:** administrators manage access roles and account status. All roles can update their own name and contact number or delete their account from **My account**. Administrators can also delete other accounts from **Accounts**. Deletion requires the acting user's current password and explicit confirmation, revokes every session, removes sign-in/contact details and authored chat/media/feedback content, cancels pending or confirmed visits, and archives pet profiles. Clinic care, health history, and payment records remain for staff; deleted owners display as **Deleted account** on visits. The final active administrator cannot be removed. Customers receive only their own pets, appointments, health records, service records, and receipts.
 - **Care updates:** confirmed customer visits, pending employee requests, follow-up reminders, and unread chat messages appear in the notification panel.
-- **Private chat:** customers message the Petopia care team; employees and administrators use a customer inbox. Conversations support staff replies, unread counts, Enter-to-send, Shift+Enter for new lines, and persistent history. Messages refresh every three seconds while the chat page is visible without replacing an unsent draft. Customers cannot read or write another customer's conversation. The care team shares an inbox and read state.
+- **Private chat:** customers message the Petopia care team; employees and administrators use a customer inbox. Conversations support staff replies, unread counts, Enter-to-send, Shift+Enter for new lines, and persistent history. Attach JPG, PNG, WebP, MP4, or WebM files up to 25 MB, with or without a caption. Attachments are accessible only to conversation participants and the care team, and videos support seeking. Authors can delete their own messages; administrators can remove any message. Deletion removes the text and attachment for everyone and leaves a **Message deleted** marker. Messages refresh every three seconds while the chat page is visible without replacing an unsent draft or interrupting video playback. Customers cannot read or write another customer's conversation. The care team shares an inbox and read state.
 - **Visit feedback:** customers rate completed visits and optionally leave a comment; they can edit their feedback. Feedback is visible to its author and authorized employees/administrators. Staff can reply, view the average rating, and identify feedback awaiting a reply.
 - **Shared Petopia gallery:** employees and administrators upload captioned grooming photos and videos, optionally tagged to a service. All signed-in customers can browse the same gallery. Staff confirm permission to share and can remove posts. JPG, PNG, WebP, MP4, and WebM files are supported, up to 25 MB each and 100 posts. Uploaded media remains behind authentication, supports video seeking, and persists across restarts.
-- **Responsive UI:** the same navigation, forms, cards, buttons, typography, and status colors serve all three roles. Desktop navigation collapses to an icon rail and remembers the preference; mobile navigation opens as a drawer. Tables scroll within their panels. Dialogs and the mobile drawer manage keyboard focus and support Escape dismissal. Forms include inline validation.
+- **Responsive UI:** the same navigation, forms, cards, buttons, typography, and status colors serve all three roles. The sidebar separates daily workflows, payment/help or clinic tools, community, and account settings. Booking and appointments lead the customer menu; appointments and scheduling lead the employee menu. Desktop navigation collapses to an icon rail and remembers the preference; mobile navigation opens as a drawer. The menu scrolls independently while the account/sign-out controls remain available. Tables scroll within their panels. Dialogs and the mobile drawer manage keyboard focus and support Escape dismissal. Forms include inline validation.
 - **Appearance and session screens:** a simple dropdown inside **My account** offers Petopia light, Midnight dark, Soft sage, and Match device themes. Preferences are saved on the device and applied before first paint. Navigation, pet tabs, and dialogs open immediately without fade, slide, or scale effects. The roomier sign-in page has a looping cartoon pet scene; successful sign-in shows a separate 1.8-second running-pet welcome. Successful sign-out clears private workspace data and shows a distinct scene with waving pets outside a little house, then returns to login after 2.4 seconds. Both screens offer a skip button and Escape dismissal. Reduced-motion preferences stop the login loop, skip the welcome, and display a static goodbye for one second. Receipts use a readable light palette when printed.
 
 ## Walkthrough
@@ -73,12 +73,14 @@ src/
   db.js                       Migration, persistence, password hashing, projections
   helpers.js                  Input and Asia/Manila date helpers
   http.js                     HTTP body handling, access guards, static files
+  media.js                    Upload validation, private media streaming and ranges
   routes.js                   Request dispatch and role-filtered bootstrap
   scheduling.js               Duration, opening-day, block, and conflict rules
   visits.js                   Group-pet selection and visit membership
   chat.js                     Role-filtered thread summaries and unread counts
   routes/
     accounts.js               Authentication, contact details, administrator access
+    account-deletion.js       Password-confirmed deletion, session and private content cleanup
     pets.js                   Pet profiles, archiving, health records
     appointments.js           Requests, transitions, rescheduling, services, payments
     clinic.js                 Administrator availability, service menu, reports
@@ -86,6 +88,7 @@ src/
     community.js              Visit feedback, staff replies, authenticated gallery media
     transfers.js              Wallet settings, transfer submissions and verification
     chat.js                   Private conversation access, messages and read state
+    chat-media.js             Private attachments and permission-checked message deletion
 public/
   index.html                  Accessible page and dialog mounts
   app.js                      Navigation and interaction orchestration
@@ -99,8 +102,10 @@ public/
     icons.js                  Shared SVG icon definitions
     components.js             Shared forms, buttons, cards, receipts
     shell.js                  Role-aware navigation and notifications
+    navigation.js             Role-aware workflow groups and menu ordering
     dialogs.js                Focused editing and workflow dialogs
     community-dialogs.js      Feedback and gallery editing dialogs
+    account-dialogs.js        Message and account removal confirmations
     payment-dialogs.js        Wallet transfer, settings and verification dialogs
     chat.js                   Polling, delivery and updates that preserve drafts
     pet-scenes.js             Local cartoon dog/cat vector scenes
@@ -125,9 +130,9 @@ npm run format:check
 
 In PowerShell environments that block `npm.ps1`, use `npm.cmd` instead.
 
-API tests use isolated databases and cover permissions, duplicate and overlapping bookings, group ownership and per-pet conflicts, availability changes, service snapshots, rescheduling, health record validation, payment ownership, transfer rejection/verification and duplicate prevention, receipts, report totals, persistence, role management, private chat and unread counts, feedback privacy/editing/replies, gallery upload validation, protected media ranges, and gallery persistence.
+API tests use isolated databases and cover permissions, duplicate and overlapping bookings, group ownership and per-pet conflicts, availability changes, service snapshots, rescheduling, health record validation, payment ownership, transfer rejection/verification and duplicate prevention, receipts, report totals, persistence, role management, private chat and unread counts, concurrent chat attachments, protected photo/video ranges, author/administrator message deletion, password-confirmed account deletion, session revocation and retained clinic records, feedback privacy/editing/replies, gallery upload validation, and gallery persistence.
 
-The browser checks build the client and use an installed Google Chrome browser. Use `BROWSER_CHANNEL=msedge` to select Edge (PowerShell: `$env:BROWSER_CHANNEL = 'msedge'`). They exercise all three roles, photo upload without losing a draft, pet edits, health records, individual and group bookings, rescheduling, both pets' visit histories, completion, clinic payment, Maya transfer verification, receipt PDF, report export, saved sidebar preferences, mobile drawer navigation, gallery photo/video uploads and playback, feedback editing, staff replies, live private chat while preserving a draft, theme persistence/device changes, reduced motion, removed duration labels, and mobile overflow. Screenshots and a receipt PDF are saved in the ignored `artifacts/ui/` directory. Browser and API tests do not touch the application's saved database.
+The browser checks build the client and use an installed Google Chrome browser. Use `BROWSER_CHANNEL=msedge` to select Edge (PowerShell: `$env:BROWSER_CHANNEL = 'msedge'`). They exercise all three roles, photo upload without losing a draft, pet edits, health records, individual and group bookings, rescheduling, both pets' visit histories, completion, clinic payment, Maya transfer verification, receipt PDF, report export, grouped navigation, saved sidebar preferences, mobile drawer navigation, gallery photo/video uploads and playback, feedback editing, staff replies, live private chat with photo/video attachments and deletion, uninterrupted playback during polling and sidebar changes, customer/administrator account removal, theme persistence/device changes, reduced motion, continuous running-pet motion, removed duration labels, and mobile overflow. Screenshots and a receipt PDF are saved in the ignored `artifacts/ui/` directory. Browser and API tests do not touch the application's saved database.
 
 `npm run format` applies the shared Prettier configuration.
 
