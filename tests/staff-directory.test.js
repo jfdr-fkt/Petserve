@@ -55,7 +55,7 @@ test('all signed-in roles can read the staff directory, while only administrator
   const original = (await request('/api/staff', customer)).data.staff;
   assert.equal(original.length, 2);
   for (const entry of original)
-    assert.deepEqual(Object.keys(entry).sort(), ['id', 'name', 'position']);
+    assert.deepEqual(Object.keys(entry).sort(), ['id', 'name', 'position', 'reportsTo']);
   for (const cookie of [customer, employee, admin]) {
     assert.deepEqual((await request('/api/staff', cookie)).data.staff, original);
     assert.deepEqual((await request('/api/bootstrap', cookie)).data.staffDirectory, original);
@@ -89,7 +89,7 @@ test('all signed-in roles can read the staff directory, while only administrator
   assert.equal((await request(`/api/staff/${added.id}`, admin, 'PATCH', edit)).status, 200);
   assert.deepEqual(
     (await request('/api/staff', employee)).data.staff.find((entry) => entry.id === added.id),
-    { id: added.id, name: edit.name, position: edit.position },
+    { id: added.id, name: edit.name, position: edit.position, reportsTo: '' },
   );
   assert.equal((await request('/api/bootstrap', admin)).data.users.length, 3);
   assert.equal((await request('/api/bootstrap', customer)).data.user.role, 'customer');
@@ -187,4 +187,71 @@ test('startup updates older presentation copy while preserving custom notes, wal
   assert.doesNotMatch(pending.reference, /demo/i);
   assert.equal(pending.wallet.name, 'Petopia Pet Care Services');
   assert.equal(data.appointments.length, db.appointments.length);
+});
+
+test('staff reporting relationships prevent cycles and preserve the team when a supervisor is removed', async (t) => {
+  const { request, login, start } = await setup(t);
+  const admin = await login('admin@petserve.test');
+  const customer = await login('alex@example.test');
+  const original = (await request('/api/staff', admin)).data.staff;
+  const leader = original.find((member) => member.position === 'Administrator');
+  const employee = original.find((member) => member.position === 'Employee');
+  assert.equal(leader.reportsTo, '');
+  assert.equal(employee.reportsTo, leader.id);
+  const create = async (name, position, reportsTo) => {
+    assert.equal(
+      (await request('/api/staff', admin, 'POST', { name, position, reportsTo })).status,
+      201,
+    );
+    return (await request('/api/staff', admin)).data.staff.find((member) => member.name === name);
+  };
+  const owner = await create('Shop owner', 'Owner', '');
+  const vet = await create('Carla Santos', 'Lead veterinarian', leader.id);
+  const assistant = await create('Leo Reyes', 'Veterinary assistant', vet.id);
+  const update = (member, reportsTo, cookie = admin) =>
+    request(`/api/staff/${member.id}`, cookie, 'PATCH', { ...member, reportsTo });
+  for (const invalid of [null, 42, '00000000-0000-0000-0000-000000000000'])
+    assert.equal((await update(vet, invalid)).status, 400);
+  assert.equal((await update(vet, vet.id)).status, 409);
+  assert.equal((await update(leader, assistant.id)).status, 409);
+  assert.equal((await update(assistant, owner.id, customer)).status, 403);
+  assert.equal((await update(leader, owner.id)).status, 200);
+  assert.equal((await update(assistant, leader.id)).status, 200);
+  assert.equal((await update(assistant, vet.id)).status, 200);
+  assert.equal(
+    (await request(`/api/staff/${vet.id}`, admin, 'DELETE', { confirm: true })).status,
+    200,
+  );
+  let entries = (await request('/api/staff', customer)).data.staff;
+  assert.equal(entries.find((member) => member.id === assistant.id).reportsTo, leader.id);
+  assert.equal(entries.find((member) => member.id === leader.id).reportsTo, owner.id);
+  assert.equal(entries.find((member) => member.id === employee.id).reportsTo, leader.id);
+  assert.equal(
+    (await request(`/api/staff/${owner.id}`, admin, 'DELETE', { confirm: true })).status,
+    200,
+  );
+  entries = (await request('/api/staff', customer)).data.staff;
+  assert.equal(entries.find((member) => member.id === leader.id).reportsTo, '');
+  const restarted = await start();
+  const nextCookie = await restarted.login('alex@example.test');
+  assert.deepEqual((await restarted.request('/api/staff', nextCookie)).data.staff, entries);
+});
+
+test('older staff lists gain a hierarchy without resetting names or repeating removed entries', async (t) => {
+  const { dbFile, start } = await setup(t);
+  const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+  db.version = 10;
+  for (const member of db.staffDirectory) delete member.reportsTo;
+  db.staffDirectory.find((member) => member.position === 'Employee').name = 'Maria Santos';
+  fs.writeFileSync(dbFile, JSON.stringify(db));
+  const restarted = await start();
+  const customer = await restarted.login('alex@example.test');
+  const entries = (await restarted.request('/api/staff', customer)).data.staff;
+  const lead = entries.find((member) => member.position === 'Administrator');
+  assert.equal(entries.find((member) => member.name === 'Maria Santos').reportsTo, lead.id);
+  assert.equal(entries.length, db.staffDirectory.length);
+  assert.deepEqual(
+    entries.map((member) => member.id),
+    db.staffDirectory.map((member) => member.id),
+  );
 });

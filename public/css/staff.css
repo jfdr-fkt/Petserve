@@ -1,7 +1,33 @@
-.staff-grid {
+.staff-tree {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: 24px;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.staff-roots {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  align-items: start;
+}
+.staff-node {
+  position: relative;
+  min-width: 0;
+}
+.staff-reports {
+  margin-left: 28px;
+  padding: 28px 0 0 28px;
+  border-left: 2px solid var(--selected-border);
+}
+.staff-reports > .staff-node::before {
+  content: '';
+  position: absolute;
+  left: -30px;
+  top: 38px;
+  width: 28px;
+  border-top: 2px solid var(--selected-border);
+}
+.staff-roots > .staff-node > .staff-card {
+  border-top: 3px solid var(--primary);
 }
 .staff-card {
   display: flex;
@@ -33,4 +59,26 @@
 .staff-card .actions {
   width: 100%;
   margin-top: 8px;
+}
+@media (max-width: 720px) {
+  .staff-reports {
+    margin-left: 12px;
+    padding-left: 16px;
+  }
+  .staff-reports > .staff-node::before {
+    left: -18px;
+    width: 16px;
+  }
+  .staff-card {
+    padding: 22px;
+    gap: 14px;
+  }
+  .staff-reports .staff-reports {
+    margin-left: 0;
+    padding-left: 12px;
+  }
+  .staff-reports .staff-reports > .staff-node::before {
+    left: -14px;
+    width: 12px;
+  }
 }

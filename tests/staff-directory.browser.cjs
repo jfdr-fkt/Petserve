@@ -53,17 +53,60 @@ const { createApp } = require('../server');
       await page.locator('.staff-card').first().waitFor();
       assert.equal(await page.locator('.side-nav [data-view=staff]').count(), 1);
       assert.equal(await page.locator('.staff-card').count(), 2);
+      assert.equal(await page.locator('.staff-roots > .staff-node').count(), 1);
+      assert.match(
+        await page.locator('.staff-roots > .staff-node > .staff-card h2').textContent(),
+        /Administrator/,
+      );
+      assert.equal(await page.locator('.staff-reports .staff-card').count(), 1);
       await checkCopy(page);
       if (role !== 'admin') assert.equal(await page.locator('[data-action^=staff-]').count(), 0);
     }
     const { admin, customer, staff } = pages;
+    const initial = (await (await admin.request.get(base + '/api/staff')).json()).staff;
+    const lead = initial.find((member) => member.position === 'Administrator');
     await admin.locator('[data-action=staff-add]').click();
     await admin.locator('[name=name]').fill('Carla Santos');
     await admin.locator('[name=position]').fill('Veterinarian');
+    await admin.getByRole('combobox', { name: 'Reports to', exact: true }).click();
+    await admin
+      .getByRole('option', { name: `${lead.name} · ${lead.position}`, exact: true })
+      .click();
     await submit(admin);
     assert.equal(await admin.locator('.staff-card').count(), 3);
+    const created = (await (await admin.request.get(base + '/api/staff')).json()).staff.find(
+      (member) => member.name === 'Carla Santos',
+    );
+    assert.equal(
+      await admin
+        .locator(`[data-staff-id="${lead.id}"] > .staff-reports > [data-staff-id="${created.id}"]`)
+        .count(),
+      1,
+    );
+    await admin.locator('[data-action=staff-add]').click();
+    await admin.locator('[name=name]').fill('Mia Reyes');
+    await admin.locator('[name=position]').fill('Veterinary assistant');
+    await admin.getByRole('combobox', { name: 'Reports to', exact: true }).click();
+    await admin.getByRole('option', { name: 'Carla Santos · Veterinarian', exact: true }).click();
+    await submit(admin);
+    const assistant = (await (await admin.request.get(base + '/api/staff')).json()).staff.find(
+      (member) => member.name === 'Mia Reyes',
+    );
+    assert.equal(
+      await admin
+        .locator(
+          `[data-staff-id="${created.id}"] > .staff-reports > [data-staff-id="${assistant.id}"]`,
+        )
+        .count(),
+      1,
+    );
     const card = admin.locator('.staff-card').filter({ hasText: 'Carla Santos' });
     await card.locator('[data-action=staff-edit]').click();
+    const eligible = await admin
+      .locator('[name=reportsTo] option')
+      .evaluateAll((options) => options.map((option) => option.value));
+    assert.ok(eligible.includes(lead.id));
+    assert.ok(!eligible.includes(created.id) && !eligible.includes(assistant.id));
     await admin.locator('[name=name]').fill('Carla <b>Santos</b>');
     await admin.locator('[name=position]').fill('Senior veterinarian');
     await submit(admin);
@@ -73,6 +116,14 @@ const { createApp } = require('../server');
       const entry = page.locator('.staff-card').filter({ hasText: 'Carla <b>Santos</b>' });
       await entry.waitFor();
       assert.match(await entry.innerText(), /Senior veterinarian/);
+      assert.equal(
+        await page
+          .locator(
+            `[data-staff-id="${created.id}"] > .staff-reports > [data-staff-id="${assistant.id}"]`,
+          )
+          .count(),
+        1,
+      );
       assert.equal(await page.locator('[data-action^=staff-]').count(), 0);
     }
     await admin.screenshot({
@@ -98,8 +149,28 @@ const { createApp } = require('../server');
     const updated = admin.locator('.staff-card').filter({ hasText: 'Carla <b>Santos</b>' });
     await updated.locator('[data-action=staff-remove]').click();
     await admin.locator('#modal-root [data-action=dialog-close]').first().click();
-    assert.equal(await admin.locator('.staff-card').count(), 3);
+    assert.equal(await admin.locator('.staff-card').count(), 4);
     await updated.locator('[data-action=staff-remove]').click();
+    assert.match(
+      await admin.locator('.modal-body').innerText(),
+      /direct reports will move up one level/,
+    );
+    await submit(admin);
+    await customer.reload();
+    assert.equal(await customer.locator('.staff-card').count(), 3);
+    assert.equal(
+      await customer
+        .locator(
+          `[data-staff-id="${lead.id}"] > .staff-reports > [data-staff-id="${assistant.id}"]`,
+        )
+        .count(),
+      1,
+    );
+    await admin
+      .locator('.staff-card')
+      .filter({ hasText: 'Mia Reyes' })
+      .locator('[data-action=staff-remove]')
+      .click();
     await submit(admin);
     await customer.reload();
     assert.equal(await customer.locator('.staff-card').count(), 2);
@@ -130,7 +201,7 @@ const { createApp } = require('../server');
     await checkCopy(customer);
     assert.deepEqual(errors, []);
     console.log(
-      'Staff directory and copy checks passed: all roles can view, administrator add/edit/remove, escaped names, saved changes, mobile/dark layout, simplified headings and payment labels.',
+      'Staff directory and copy checks passed: reporting hierarchy, safe supervisor choices, team retained after removal, all roles can view, administrator-only edits, escaped names, mobile/dark layout, simplified headings and payment labels.',
     );
   } finally {
     await browser.close();

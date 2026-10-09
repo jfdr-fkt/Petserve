@@ -26,7 +26,11 @@ module.exports = async ({ req, res, pathname, db, user, sessions, token, persist
   const previous = [...db.staffDirectory];
   if (req.method === 'DELETE') {
     if (data.confirm !== true) throw httpError(400, 'Confirm removal of this staff member.');
-    db.staffDirectory = db.staffDirectory.filter((entry) => entry.id !== member.id);
+    db.staffDirectory = db.staffDirectory
+      .filter((entry) => entry.id !== member.id)
+      .map((entry) =>
+        entry.reportsTo === member.id ? { ...entry, reportsTo: member.reportsTo } : entry,
+      );
   } else {
     for (const field of ['name', 'position'])
       if (
@@ -35,10 +39,25 @@ module.exports = async ({ req, res, pathname, db, user, sessions, token, persist
         data[field].trim().length > 80
       )
         throw httpError(400, 'Enter a name and position of 2 to 80 characters.');
+    const reportsTo = data.reportsTo === undefined ? member?.reportsTo || '' : data.reportsTo;
+    if (
+      typeof reportsTo !== 'string' ||
+      (reportsTo && !db.staffDirectory.some((entry) => entry.id === reportsTo))
+    )
+      throw httpError(400, 'Choose a staff member to report to, or the top of the hierarchy.');
+    const visited = new Set(member ? [member.id] : []);
+    let parentId = reportsTo;
+    while (parentId) {
+      if (visited.has(parentId))
+        throw httpError(409, 'A staff member cannot report to themselves or someone below them.');
+      visited.add(parentId);
+      parentId = db.staffDirectory.find((entry) => entry.id === parentId)?.reportsTo || '';
+    }
     const entry = {
       id: member ? member.id : newId(),
       name: clean(data.name, 80),
       position: clean(data.position, 80),
+      reportsTo,
     };
     if (member) db.staffDirectory[db.staffDirectory.indexOf(member)] = entry;
     else db.staffDirectory.push(entry);
