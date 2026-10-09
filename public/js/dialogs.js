@@ -8,6 +8,7 @@ import { shiftDialog } from './shift-schedule.js';
 import { accountDialog } from './account-dialogs.js';
 import { careDialog } from './care-dialogs.js';
 import { petMediaDialog, petMediaViewer } from './pet-media.js';
+import { staffDialog } from './staff-dialogs.js';
 
 export function dialogContent() {
   if (!state.dialog) return '';
@@ -24,6 +25,7 @@ export function dialogContent() {
   const community =
     communityDialog(type, id, d) ||
     petMediaDialog(type, id, d) ||
+    staffDialog(type, id, d) ||
     paymentDialog(type, id, d) ||
     shiftDialog(type, id, d) ||
     accountDialog(type, id) ||
@@ -31,13 +33,13 @@ export function dialogContent() {
   if (community) {
     ({ title, description, content, label } = community);
   } else if (type === 'pet') {
-    title = id ? 'A little profile refresh.' : 'Meet your new companion.';
-    description = 'Their personality, their care, and all the little details.';
+    title = id ? 'Edit pet' : 'Add pet';
+    description = '';
     wide = true;
-    content = `<div class="photo-editor">${petAvatar({ ...d, name: d.name || 'Pet' }, 'lg')}<div><strong>A face you know and love</strong><p>JPG, PNG or WebP. Choose a photo up to 10 MB.</p><label class="btn btn-soft photo-upload">${icon('plus')}Choose photo<input type="file" id="pet-photo" accept="image/png,image/jpeg,image/webp" class="sr-only"></label>${d.photoUrl ? '<button type="button" class="text-button" data-action="photo-remove">Remove photo</button>' : ''}</div></div><div class="form-grid">${field('Pet name', 'name', d.name, { required: true, attrs: 'maxlength="80"', placeholder: 'What do you call them?' })}${field('Species', 'species', d.species || 'Dog', { choices: ['Dog', 'Cat', 'Other'], required: true })}${field('Breed (optional)', 'breed', d.breed, { attrs: 'maxlength="80"', placeholder: 'Aspin, Puspin, or one of a kind' })}${field('Sex (optional)', 'sex', d.sex, { choices: [['', 'Not specified'], 'Male', 'Female'] })}${field('Birthday (optional)', 'birthDate', d.birthDate, { type: 'date', attrs: `max="${todayManila()}"` })}${field('Age (optional)', 'age', d.age, { attrs: 'maxlength="40"', placeholder: 'e.g. 2 years' })}${field('Weight in kg (optional)', 'weight', d.weight, { type: 'number', attrs: 'min="0.01" max="300" step="0.01"', placeholder: 'e.g. 12' })}${field('Allergies or sensitivities', 'allergies', d.allergies, { attrs: 'maxlength="200"', placeholder: 'Anything the team should know' })}</div>${field('A little about them (optional)', 'notes', d.notes, { type: 'textarea', attrs: 'maxlength="300"', placeholder: 'Their personality, behavior, and comfort notes.' })}`;
-    label = id ? 'Save profile' : 'Add to the family';
+    content = `<div class="photo-editor">${petAvatar({ ...d, name: d.name || 'Pet' }, 'lg')}<div><strong>Profile photo</strong><p>JPG, PNG or WebP. Choose a photo up to 10 MB.</p><label class="btn btn-soft photo-upload">${icon('plus')}Choose photo<input type="file" id="pet-photo" accept="image/png,image/jpeg,image/webp" class="sr-only"></label>${d.photoUrl ? '<button type="button" class="text-button" data-action="photo-remove">Remove photo</button>' : ''}</div></div><div class="form-grid">${field('Pet name', 'name', d.name, { required: true, attrs: 'maxlength="80"', placeholder: 'What do you call them?' })}${field('Species', 'species', d.species || 'Dog', { choices: ['Dog', 'Cat', 'Other'], required: true })}${field('Breed (optional)', 'breed', d.breed, { attrs: 'maxlength="80"', placeholder: 'Aspin, Puspin, or one of a kind' })}${field('Sex (optional)', 'sex', d.sex, { choices: [['', 'Not specified'], 'Male', 'Female'] })}${field('Birthday (optional)', 'birthDate', d.birthDate, { type: 'date', attrs: `max="${todayManila()}"` })}${field('Age (optional)', 'age', d.age, { attrs: 'maxlength="40"', placeholder: 'e.g. 2 years' })}${field('Weight in kg (optional)', 'weight', d.weight, { type: 'number', attrs: 'min="0.01" max="300" step="0.01"', placeholder: 'e.g. 12' })}${field('Allergies or sensitivities', 'allergies', d.allergies, { attrs: 'maxlength="200"', placeholder: 'Anything the team should know' })}</div>${field('Care notes (optional)', 'notes', d.notes, { type: 'textarea', attrs: 'maxlength="300"', placeholder: 'Their personality, behavior, and comfort notes.' })}`;
+    label = id ? 'Save profile' : 'Add pet';
   } else if (type === 'health') {
-    title = 'Keep a care milestone.';
+    title = 'Add health record';
     description = 'Record a past visit or an owner-provided health note.';
     content = `${field('Record title', 'title', d.title, { required: true, attrs: 'maxlength="100"', placeholder: 'e.g. Annual rabies vaccination' })}<div class="form-grid">${field(
       'Record type',
@@ -54,9 +56,9 @@ export function dialogContent() {
     label = 'Save care record';
   } else if (type === 'status') {
     title = {
-      confirmed: 'A visit to look forward to.',
+      confirmed: 'Confirm visit?',
       rejected: 'Decline this request?',
-      completed: 'Another little care milestone.',
+      completed: 'Record completed care',
       cancelled: 'Cancel this visit?',
     }[status];
     description = `${a.petName} · ${a.serviceName} · ${dateLabel(a.date)} · ${timeLabel(a.time)}`;
@@ -86,14 +88,14 @@ export function dialogContent() {
       cancelled: 'Cancel visit',
     }[status];
   } else if (type === 'payment') {
-    title = 'Keep their payment connected.';
+    title = 'Record payment';
     description = `${a.petName} · ${a.serviceName}`;
     content = `<div class="payment-estimate"><span>Estimated service price</span><strong>${money(a.basePrice)}</strong></div>${field('Amount received (₱)', 'amount', d.amount ?? a.basePrice / 100, { type: 'number', required: true, attrs: 'min="0.01" max="1000000" step="0.01"' })}${field('Payment method', 'method', d.method || 'Cash', { choices: ['Cash', 'GCash', 'Maya', 'E-wallet', 'Credit Card', 'Other'] })}${field('Reference (optional)', 'reference', d.reference, { attrs: 'maxlength="60"', placeholder: 'Transaction or manual receipt reference' })}<p class="form-footnote">Record a payment already received at the clinic. A receipt will be available to the owner.</p>`;
     label = 'Record payment';
   } else if (type === 'receipt') {
     return `<div class="modal-backdrop"><section class="modal-card receipt-modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="modal-header no-print"><h2 id="dialog-title">Your payment receipt</h2><button type="button" class="icon-button" data-action="dialog-close" aria-label="Close dialog">${icon('close')}</button></div>${receipt(a)}<div class="modal-footer no-print"><button type="button" class="btn btn-outline" data-action="dialog-close">Close</button><button type="button" class="btn btn-primary" data-action="print">${icon('print')}Print / save PDF</button></div></section></div>`;
   } else if (type === 'reschedule') {
-    title = 'Make a little room for change.';
+    title = 'Reschedule visit';
     description = `${a.petName} · ${a.serviceName}. The care team will review the new time.`;
     content = `${field('New visit date', 'date', state.booking.date, { type: 'date', id: 'reschedule-date', required: true, attrs: `min="${todayManila()}" max="${new Date(Date.parse(`${todayManila()}T12:00Z`) + 90 * 86400000).toISOString().slice(0, 10)}"` })}<div class="field"><label>Available times</label><div id="slot-picker">${slotPicker()}</div></div>`;
     label = 'Request a new time';
@@ -115,7 +117,7 @@ export function dialogContent() {
       )}</div></div><div class="subtle-note">The clinic closes at 5 PM. Confirmed visits must be rescheduled before removing their day or time.</div>`;
     label = 'Save availability';
   } else if (type === 'block') {
-    title = 'A little time away.';
+    title = 'Block time';
     description = 'Keep new bookings out of a time your team is unavailable.';
     content = `${field('Date', 'date', d.date || state.scheduleDate || todayManila(), { type: 'date', required: true, attrs: `min="${todayManila()}"` })}${field(
       'Care team',
@@ -130,7 +132,7 @@ export function dialogContent() {
     )}${field('Time', 'time', d.time, { choices: [['', 'All day'], ...state.data.timeSlots.map((time) => [time, timeLabel(time)])] })}${field('Reason (optional)', 'reason', d.reason, { attrs: 'maxlength="120"', placeholder: 'e.g. Team leave or clinic event' })}`;
     label = 'Block time';
   } else if (type === 'service') {
-    title = 'A little care-menu refresh.';
+    title = 'Edit service';
     description = 'Updates apply to new requests. Existing visits keep their booked price.';
     content = `${field('Service name', 'name', d.name, { required: true, attrs: 'maxlength="80"' })}${field('Description', 'description', d.description, { type: 'textarea', attrs: 'maxlength="300"' })}<div class="form-grid">${field('Estimated price (₱)', 'price', d.basePrice / 100, { type: 'number', required: true, attrs: 'min="0" max="1000000" step="0.01"' })}</div>${field(
       'Booking availability',
@@ -166,5 +168,5 @@ export function dialogContent() {
       '<div class="subtle-note">Cancel or complete any upcoming visits first. This profile will no longer appear in My Pets.</div>';
     label = 'Archive profile';
   }
-  return `<div class="modal-backdrop"><section class="modal-card ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="modal-header"><div><span class="eyebrow">A LITTLE ATTENTION TO DETAIL</span><h2 id="dialog-title">${title}</h2><p>${e(description)}</p></div><button type="button" class="icon-button" data-action="dialog-close" aria-label="Close dialog">${icon('close')}</button></div><form data-form="${form}" data-id="${id || ''}"><div class="modal-body">${content}<div class="form-error" role="alert" hidden></div></div><div class="modal-footer"><button type="button" class="btn btn-outline" data-action="dialog-close">${type === 'status' && status === 'cancelled' ? 'Keep visit' : 'Cancel'}</button><button type="submit" class="btn ${['archive', 'account-delete', 'chat-delete', 'chat-clear', 'pet-media-remove'].includes(type) || (type === 'status' && ['cancelled', 'rejected'].includes(status)) ? 'btn-danger' : 'btn-primary'}" ${type === 'reschedule' && !state.booking.time ? 'disabled' : ''}>${label}</button></div></form></section></div>`;
+  return `<div class="modal-backdrop"><section class="modal-card ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="modal-header"><div><h2 id="dialog-title">${title}</h2>${description ? `<p>${e(description)}</p>` : ''}</div><button type="button" class="icon-button" data-action="dialog-close" aria-label="Close dialog">${icon('close')}</button></div><form data-form="${form}" data-id="${id || ''}"><div class="modal-body">${content}<div class="form-error" role="alert" hidden></div></div><div class="modal-footer"><button type="button" class="btn btn-outline" data-action="dialog-close">${type === 'status' && status === 'cancelled' ? 'Keep visit' : 'Cancel'}</button><button type="submit" class="btn ${['archive', 'account-delete', 'chat-delete', 'chat-clear', 'pet-media-remove', 'staff-remove'].includes(type) || (type === 'status' && ['cancelled', 'rejected'].includes(status)) ? 'btn-danger' : 'btn-primary'}" ${type === 'reschedule' && !state.booking.time ? 'disabled' : ''}>${label}</button></div></form></section></div>`;
 }

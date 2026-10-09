@@ -149,6 +149,7 @@
   font-size: var(--text-sm);
   padding: 9px 13px;
   min-height: 34px;
+  margin-top: 18px;
 }
 .welcome-art {
   width: 350px;

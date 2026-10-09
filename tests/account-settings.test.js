@@ -281,7 +281,8 @@ test('presentation payment examples include receipts and a working staff verific
   );
   assert.equal(data.appointments.filter((visit) => !visit.payment).length, 2);
   assert.ok(data.appointments.every((visit) => visit.demo && visit.serviceRecord));
-  assert.ok(data.wallets.Maya.demo && /Do not send money/.test(data.wallets.Maya.instructions));
+  assert.equal(data.wallets.Maya.name, 'Petopia Pet Care Services');
+  assert.equal(data.wallets.Maya.instructions, '');
   const pending = data.appointments.find((visit) => visit.paymentRequest?.status === 'pending');
   assert.equal(
     (

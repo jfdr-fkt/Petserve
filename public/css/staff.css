@@ -1,0 +1,36 @@
+.staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 24px;
+}
+.staff-card {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 26px;
+}
+.staff-avatar {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  font-size: var(--text-title);
+  background: var(--sage);
+  color: var(--sage-text);
+}
+.staff-identity {
+  flex: 1;
+  min-width: 0;
+}
+.staff-identity h2 {
+  font-size: var(--text-heading);
+  overflow-wrap: anywhere;
+}
+.staff-identity p {
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.staff-card .actions {
+  width: 100%;
+  margin-top: 8px;
+}

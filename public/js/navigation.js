@@ -24,6 +24,7 @@ export function navigationGroups() {
         'Community',
         [
           ['gallery', 'camera', 'Petopia gallery'],
+          ['staff', 'settings', 'Staff list'],
           ['feedback', 'feedback', 'My feedback'],
         ],
       ],
@@ -52,6 +53,7 @@ export function navigationGroups() {
       'Community',
       [
         ['gallery', 'camera', 'Petopia gallery'],
+        ['staff', 'settings', 'Staff list'],
         ['feedback', 'feedback', 'Customer feedback'],
       ],
     ],

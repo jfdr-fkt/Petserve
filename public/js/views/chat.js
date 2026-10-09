@@ -55,7 +55,7 @@ export function chat() {
     state.chatCustomerId = threads[0]?.customerId || '';
   const selected = threads.find((thread) => thread.customerId === state.chatCustomerId);
   const disabled = !selected || state.chatSending;
-  return `${heading('A little conversation goes a long way', isStaff() ? 'Customer messages' : 'Chat with Petopia', 'Private conversations between pet owners and the care team.')}
+  return `${heading(isStaff() ? 'Customer messages' : 'Chat with Petopia')}
     <section class="panel chat-workspace ${isStaff() ? '' : 'customer-chat'}">
       ${isStaff() ? `<aside class="chat-inbox"><label class="search-field">${icon('search')}<input type="search" name="chatSearch" aria-label="Search conversations" placeholder="Find a customer…" value="${e(state.chatSearch)}"></label><div id="chat-threads">${threadList()}</div></aside>` : ''}
       <div class="chat-conversation">

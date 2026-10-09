@@ -36,7 +36,7 @@ export function icon(name) {
   );
 }
 export const brand = () =>
-  `<span class="brand-mark">${icons.brand}</span><span>PetServe<span class="brand-dot">.</span><small>care, coordinated</small></span>`;
+  `<span class="brand-mark">${icons.brand}</span><span>PetServe<span class="brand-dot">.</span></span>`;
 export const userAvatar = (user, size = '') =>
   `<span class="user-avatar ${e(size)}">${user.photoUrl ? `<img src="${e(user.photoUrl)}" alt="${e(user.name)}’s profile photo">` : e(user.name?.[0] || '?')}</span>`;
 export const statusBadge = (status) =>
@@ -45,10 +45,10 @@ export const button = (label, action, glyph = '', kind = 'primary', attrs = '') 
   `<button type="button" class="btn btn-${kind}" data-action="${action}" ${attrs}>${glyph ? icon(glyph) : ''}${label}</button>`;
 export const viewButton = (label, view, glyph = '', kind = 'primary') =>
   `<button type="button" class="btn btn-${kind}" data-view="${view}">${glyph ? icon(glyph) : ''}${label}</button>`;
-export const heading = (eyebrow, title, description, actions = '') =>
-  `<div class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="actions">${actions}</div></div>`;
+export const heading = (title, actions = '') =>
+  `<div class="page-heading"><h1>${title}</h1>${actions ? `<div class="actions">${actions}</div>` : ''}</div>`;
 export const empty = (title, description, action = '', glyph = 'pets') =>
-  `<div class="empty-state"><span class="empty-icon">${icon(glyph)}</span><h3>${title}</h3><p>${description}</p>${action}</div>`;
+  `<div class="empty-state"><span class="empty-icon">${icon(glyph)}</span><h3>${title}</h3>${description ? `<p>${description}</p>` : ''}${action}</div>`;
 export const stats = (items) =>
   `<div class="stats-grid">${items.map(([label, value, glyph, tone = 'sage', hint = '']) => `<div class="stat-card"><div><span class="stat-label">${label}</span><strong>${value}</strong>${hint ? `<small>${hint}</small>` : ''}</div><span class="icon-tile ${tone}">${icon(glyph)}</span></div>`).join('')}</div>`;
 export const field = (label, name, value = '', options = {}) => {
@@ -74,5 +74,5 @@ export function visitRow(appointment, staff = false) {
 }
 export function receipt(appointment) {
   const p = appointment.payment;
-  return `<article class="receipt"><div class="receipt-brand brand">${brand()}</div><div class="receipt-heading"><span class="eyebrow">Petopia Pet Care Services · Tagum City</span><h2>${appointment.demo ? 'Demo payment receipt' : 'Payment receipt'}</h2><p>Receipt #${e(p.id.slice(0, 8).toUpperCase())}</p></div><div class="receipt-meta"><div><small>Received from</small><strong>${e(appointment.customerName)}</strong><span>${e(appointment.petName)}</span></div><div><small>Payment recorded</small><strong>${new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }).format(new Date(p.recordedAt))}</strong><span>By ${e(p.recordedBy)}</span></div></div><div class="receipt-line"><div><strong>${e(appointment.serviceName)}</strong><small>${dateLabel(appointment.date)} · ${timeLabel(appointment.time)}</small></div><strong>${money(p.amount)}</strong></div><div class="receipt-total"><span>Total paid</span><strong>${money(p.amount)}</strong></div><div class="receipt-meta"><div><small>Method</small><strong>${e(p.method)}</strong></div><div><small>Reference</small><strong>${e(p.reference || '—')}</strong></div></div><p class="receipt-footer">Payment recorded · Thank you for trusting us with their care.</p></article>`;
+  return `<article class="receipt"><div class="receipt-brand brand">${brand()}</div><div class="receipt-heading"><span class="eyebrow">Petopia Pet Care Services · Tagum City</span><h2>Payment receipt</h2><p>Receipt #${e(p.id.slice(0, 8).toUpperCase())}</p></div><div class="receipt-meta"><div><small>Received from</small><strong>${e(appointment.customerName)}</strong><span>${e(appointment.petName)}</span></div><div><small>Payment recorded</small><strong>${new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }).format(new Date(p.recordedAt))}</strong><span>By ${e(p.recordedBy)}</span></div></div><div class="receipt-line"><div><strong>${e(appointment.serviceName)}</strong><small>${dateLabel(appointment.date)} · ${timeLabel(appointment.time)}</small></div><strong>${money(p.amount)}</strong></div><div class="receipt-total"><span>Total paid</span><strong>${money(p.amount)}</strong></div><div class="receipt-meta"><div><small>Method</small><strong>${e(p.method)}</strong></div><div><small>Reference</small><strong>${e(p.reference || '—')}</strong></div></div></article>`;
 }

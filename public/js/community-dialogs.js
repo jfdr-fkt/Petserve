@@ -43,10 +43,10 @@ export function communityDialog(type, id, d) {
     };
   if (type === 'gallery-upload')
     return {
-      title: 'Share a happy moment.',
+      title: 'Add photo or video',
       description: 'Visible to all signed-in customers in the Petopia gallery.',
       label: 'Post to gallery',
-      content: `<div class="field"><label for="gallery-file">Photo or short video</label><input type="file" id="gallery-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required><small>JPG, PNG, WebP, MP4 or WebM · up to 25 MB</small><div id="upload-preview">${uploadPreview()}</div></div>${field('Caption', 'caption', d.caption, { type: 'textarea', required: true, attrs: 'maxlength="300"', placeholder: 'A fresh trim, a happy guest, or a little behind the scenes.' })}${field('Service (optional)', 'serviceId', d.serviceId || '', { choices: [['', 'Life at Petopia'], ...state.data.services.map((s) => [s.id, s.name])] })}<label class="upload-consent"><input type="checkbox" name="permission" required><span>I have permission to share this photo or video with Petopia customers.</span></label>`,
+      content: `<div class="field"><label for="gallery-file">Photo or short video</label><input type="file" id="gallery-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required><small>JPG, PNG, WebP, MP4 or WebM · up to 25 MB</small><div id="upload-preview">${uploadPreview()}</div></div>${field('Caption', 'caption', d.caption, { type: 'textarea', required: true, attrs: 'maxlength="300"', placeholder: 'Describe the photo or video.' })}${field('Service (optional)', 'serviceId', d.serviceId || '', { choices: [['', 'Life at Petopia'], ...state.data.services.map((s) => [s.id, s.name])] })}<label class="upload-consent"><input type="checkbox" name="permission" required><span>I have permission to share this photo or video with Petopia customers.</span></label>`,
     };
   if (type === 'gallery-remove')
     return {

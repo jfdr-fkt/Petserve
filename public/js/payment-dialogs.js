@@ -62,6 +62,6 @@ export function paymentDialog(type, id, draft) {
 export function walletDetails(method) {
   const wallet = state.data.wallets[method];
   return wallet
-    ? `${wallet.demo ? '<p class="subtle-note">Demo wallet: use a sample reference. Do not send real money.</p>' : ''}<dl class="wallet-details"><div><dt>Account name</dt><dd>${e(wallet.name)}</dd></div><div><dt>${e(method)} number</dt><dd>${e(wallet.number)}</dd></div>${wallet.instructions ? `<div><dt>From the shop</dt><dd>${e(wallet.instructions)}</dd></div>` : ''}</dl>`
+    ? `<dl class="wallet-details"><div><dt>Account name</dt><dd>${e(wallet.name)}</dd></div><div><dt>${e(method)} number</dt><dd>${e(wallet.number)}</dd></div>${wallet.instructions ? `<div><dt>From the shop</dt><dd>${e(wallet.instructions)}</dd></div>` : ''}</dl>`
     : '';
 }

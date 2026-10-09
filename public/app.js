@@ -4,6 +4,7 @@ import { shell, navigation } from './js/shell.js';
 import { auth } from './js/views/auth.js';
 import { overview } from './js/views/overview.js';
 import { pets } from './js/views/pets.js';
+import { staff } from './js/views/staff.js';
 import { booking, dateOptions, slotPicker } from './js/views/booking.js';
 import { appointments, payments } from './js/views/appointments.js';
 import { schedule, services, accounts, account, reports } from './js/views/clinic.js';
@@ -37,6 +38,7 @@ const ui = createInterface(root, modalRoot);
 const views = {
   overview,
   pets,
+  staff,
   book: booking,
   appointments,
   payments,
@@ -454,6 +456,15 @@ async function handleClick(event) {
     }
     if (action === 'pet-media-upload') {
       openDialog('pet-media-upload', id);
+      return;
+    }
+    if (action === 'staff-add') {
+      openDialog('staff-member');
+      return;
+    }
+    if (action === 'staff-edit' || action === 'staff-remove') {
+      const member = state.data.staffDirectory.find((entry) => entry.id === id);
+      openDialog(action === 'staff-edit' ? 'staff-member' : 'staff-remove', id, member);
       return;
     }
     if (action === 'pet-media-view') {
@@ -943,6 +954,14 @@ async function handleSubmit(event) {
         );
         state.petTab = 'media';
         message = 'Saved to this pet’s album.';
+        break;
+      case 'staff-member':
+        await api(id ? `/api/staff/${id}` : '/api/staff', id ? 'PATCH' : 'POST', values);
+        message = 'Staff list updated.';
+        break;
+      case 'staff-remove':
+        await api(`/api/staff/${id}`, 'DELETE', { confirm: true });
+        message = 'Staff member removed.';
         break;
       case 'pet-media-remove':
         await api(`/api/pets/${state.draft.petId}/media/${id}`, 'DELETE');

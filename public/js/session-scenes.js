@@ -12,8 +12,8 @@ function showSessionScene(
     screen.setAttribute('role', 'dialog');
     screen.setAttribute('aria-modal', 'true');
     screen.setAttribute('aria-labelledby', 'session-scene-title');
-    screen.setAttribute('aria-describedby', 'session-scene-description');
-    screen.innerHTML = `<div class="session-scene-card"><span class="eyebrow">${eyebrow}</span>${petScene(scene)}<h1 id="session-scene-title">${title}</h1><p id="session-scene-description">${description}</p><button type="button" class="btn btn-outline">${buttonText}</button></div>`;
+    if (description) screen.setAttribute('aria-describedby', 'session-scene-description');
+    screen.innerHTML = `<div class="session-scene-card">${eyebrow ? `<span class="eyebrow">${eyebrow}</span>` : ''}${petScene(scene)}<h1 id="session-scene-title">${title}</h1>${description ? `<p id="session-scene-description">${description}</p>` : ''}<button type="button" class="btn btn-outline">${buttonText}</button></div>`;
     const previouslyInert = root.inert;
     root.inert = true;
     document.body.classList.add('session-scene-open');
@@ -57,10 +57,10 @@ export function loginWelcome(root) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return Promise.resolve();
   return showSessionScene(root, {
     className: 'login-welcome',
-    eyebrow: 'HELLO, HAPPY PAWS',
+    eyebrow: '',
     scene: 'run',
-    title: 'A happy little hello.',
-    description: 'Your care space is ready. Come on in.',
+    title: 'Welcome back',
+    description: '',
     buttonText: 'Go to dashboard',
     duration: 1800,
   });
@@ -69,10 +69,10 @@ export function loginWelcome(root) {
 export function logoutGoodbye(root, deleted = false) {
   return showSessionScene(root, {
     className: 'logout-goodbye',
-    eyebrow: deleted ? 'ACCOUNT DELETED' : 'SIGNED OUT. SEE YOU SOON.',
+    eyebrow: '',
     scene: 'goodbye',
-    title: 'Until the next happy visit.',
-    description: 'Take care of those little paws. We’ll be here when you need us.',
+    title: deleted ? 'Account deleted' : 'Signed out',
+    description: '',
     buttonText: 'Back to sign in',
     duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 1000 : 2400,
   });

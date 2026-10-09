@@ -9,7 +9,7 @@ export function petMediaContent(pet) {
   const add = staff
     ? ''
     : button('Add photo or video', 'pet-media-upload', 'camera', 'primary', `data-id="${pet.id}"`);
-  return `<div class="section-header pet-media-heading"><div><h3>${e(pet.name)}’s moments</h3><p>Photos and videos for this pet, visible to their owner and the care team.</p></div>${add}</div>${
+  return `<div class="section-header pet-media-heading"><div><h3>Photos & videos</h3><p>Photos and videos for this pet, visible to their owner and the care team.</p></div>${add}</div>${
     items.length
       ? `<div class="pet-media-grid">${items
           .map((item) => {
@@ -27,10 +27,10 @@ export function petMediaContent(pet) {
             '',
           )}</div><p class="pet-media-count muted small-text">${items.length} of 50 photos and videos</p>`
       : empty(
-          'Their album starts here',
+          'No photos or videos',
           staff
             ? 'Photos and videos added by this pet’s owner will appear here.'
-            : 'Keep their favorite moments together. Add a photo or a short video.',
+            : 'Add a photo or video to this pet’s album.',
           add,
           'camera',
         )
@@ -41,7 +41,7 @@ export function petMediaDialog(type, id, draft) {
   if (type === 'pet-media-upload') {
     const pet = state.data.pets.find((item) => item.id === id);
     return {
-      title: `A moment with ${e(pet.name)}.`,
+      title: `Add photo or video · ${e(pet.name)}`,
       description: 'Saved to this pet’s album. Only you and the care team can see it.',
       label: 'Save to pet album',
       content: `<div class="field"><label for="pet-media-file">Photo or short video</label><input type="file" id="pet-media-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required><small>JPG, PNG, WebP, MP4 or WebM · up to 25 MB each</small><div id="upload-preview">${uploadPreview()}</div></div>${field('Caption (optional)', 'caption', draft.caption, { type: 'textarea', attrs: 'maxlength="300"', placeholder: 'A favorite walk, a new trick, or just being them.' })}<p class="form-footnote">You can keep up to 50 photos and videos for each pet.</p>`,

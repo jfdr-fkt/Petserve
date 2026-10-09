@@ -23,8 +23,8 @@ export function overview() {
   const followups = state.data.healthLogs
     .filter((h) => h.dueDate)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
-  return `${heading(staff ? 'A little organization, a lot of care' : 'Their happy place starts here', `${staff ? 'Hello' : 'Welcome back'}, ${e(state.data.user.name.split(' ')[0])}.`, staff ? 'Keep the day flowing and every pet’s care connected.' : 'A little overview of your pets and everything coming up.', viewButton(staff ? 'View schedule' : 'Book a visit', staff ? 'schedule' : 'book', staff ? 'calendar' : 'plus'))}
-  <section class="welcome-banner"><div><span class="eyebrow">${staff ? 'ONE TEAM. THOUGHTFUL CARE.' : 'GOOD CARE, ONE VISIT AT A TIME.'}</span><h2>${staff ? 'Every visit deserves<br>a little extra care.' : 'Big love for<br>your little companions.'}</h2><p>${staff ? `${pending.length} request${pending.length === 1 ? '' : 's'} waiting for your review. Let’s make their next visit a good one.` : 'From fresh trims to wellness visits, we’re here for the moments that keep them happy.'}</p>${viewButton(staff ? 'Review requests' : 'Meet your pets', staff ? 'appointments' : 'pets', 'arrow', 'soft')}</div><div class="welcome-art"><span class="art-sparkle sparkle-one">✦</span><img src="/assets/dog.svg" alt="" class="welcome-dog"><img src="/assets/cat.svg" alt="" class="welcome-cat"><span class="art-sparkle sparkle-two">✧</span><span class="art-caption">a little love, every day ♡</span></div></section>
+  return `${heading(`${staff ? 'Hello' : 'Welcome back'}, ${e(state.data.user.name.split(' ')[0])}.`, viewButton(staff ? 'View schedule' : 'Book a visit', staff ? 'schedule' : 'book', staff ? 'calendar' : 'plus'))}
+  <section class="welcome-banner"><div><h2>${staff ? 'Today’s appointments' : 'Pet care'}</h2>${viewButton(staff ? 'Review requests' : 'Meet your pets', staff ? 'appointments' : 'pets', 'arrow', 'soft')}</div><div class="welcome-art"><span class="art-sparkle sparkle-one">✦</span><img src="/assets/dog.svg" alt="" class="welcome-dog"><img src="/assets/cat.svg" alt="" class="welcome-cat"><span class="art-sparkle sparkle-two">✧</span></div></section>
   ${stats(
     staff
       ? [
@@ -33,40 +33,38 @@ export function overview() {
             apps.filter((a) => a.date === today && a.status === 'confirmed').length,
             'calendar',
             'sage',
-            'Confirmed appointments',
           ],
-          ['Awaiting review', pending.length, 'queue', 'peach', 'New appointment requests'],
-          ['Pet profiles', state.data.pets.length, 'pets', 'lavender', 'Care records connected'],
-          ['Collections', money(paid), 'card', 'sand', 'Recorded payments'],
+          ['Awaiting review', pending.length, 'queue', 'peach'],
+          ['Pet profiles', state.data.pets.length, 'pets', 'lavender'],
+          ['Collections', money(paid), 'card', 'sand'],
         ]
       : [
-          ['My companions', state.data.pets.length, 'pets', 'sage', 'A little family of your own'],
-          ['Upcoming visits', upcoming.length, 'calendar', 'peach', 'Something to look forward to'],
+          ['My pets', state.data.pets.length, 'pets', 'sage'],
+          ['Upcoming visits', upcoming.length, 'calendar', 'peach'],
           [
             'Completed visits',
             apps.filter((a) => a.status === 'completed').length,
             'check',
             'lavender',
-            'Care milestones together',
           ],
-          ['Awaiting review', pending.length, 'clock', 'sand', 'We’ll confirm your request'],
+          ['Awaiting review', pending.length, 'clock', 'sand'],
         ],
   )}
-  <div class="dashboard-grid"><section class="panel"><div class="panel-header"><div><h2>${staff ? 'Next on the schedule' : 'Your upcoming visits'}</h2><p>A little heads-up for what’s next.</p></div><button type="button" class="text-button" data-view="appointments">View all ${icon('arrow')}</button></div>${
+  <div class="dashboard-grid"><section class="panel"><div class="panel-header"><div><h2>${staff ? 'Next on the schedule' : 'Your upcoming visits'}</h2></div><button type="button" class="text-button" data-view="appointments">View all ${icon('arrow')}</button></div>${
     upcoming.length
       ? upcoming
           .slice(0, 4)
           .map((a) => visitRow(a, staff))
           .join('')
       : empty(
-          'A little room in the calendar',
+          'No upcoming visits',
           staff
             ? 'New appointment requests will appear here.'
             : 'Ready for their next visit? Find a time that suits you.',
           staff ? '' : viewButton('Plan a visit', 'book', 'plus', 'soft'),
           'calendar',
         )
-  }</section><section class="panel"><div class="panel-header"><div><h2>${staff ? 'Care reminders' : 'Your little family'}</h2><p>${staff ? 'Follow-ups recorded by owners and the clinic.' : 'The faces behind your favorite moments.'}</p></div>${!staff ? '<button type="button" class="text-button" data-view="pets">View pets</button>' : ''}</div>${
+  }</section><section class="panel"><div class="panel-header"><div><h2>${staff ? 'Care reminders' : 'My pets'}</h2></div>${!staff ? '<button type="button" class="text-button" data-view="pets">View pets</button>' : ''}</div>${
     staff
       ? followups.length
         ? followups
@@ -77,7 +75,7 @@ export function overview() {
             )
             .join('')
         : empty(
-            'All quiet here',
+            'No care reminders',
             'Add follow-up dates to health records to see reminders.',
             '',
             'vaccination',
@@ -91,14 +89,14 @@ export function overview() {
             )
             .join('')
         : empty(
-            'Meet your first companion',
+            'No pets added',
             'Add a pet profile to keep their care together.',
             viewButton('Add a pet', 'pets', 'plus', 'soft'),
           )
   }</section></div>
   ${
     !staff
-      ? `<section class="services-strip"><div><span class="eyebrow">A LITTLE SOMETHING FOR EVERY PET</span><h2>Care that feels like home.</h2></div><div class="service-mini-grid">${state.data.services
+      ? `<section class="services-strip"><div><h2>Services</h2></div><div class="service-mini-grid">${state.data.services
           .filter((s) => s.active)
           .map(
             (s) =>

@@ -102,7 +102,7 @@ async function seedDatabase(file) {
 }
 
 async function migrate(db) {
-  db.version = 9;
+  db.version = 10;
   for (const account of db.users) {
     account.demo ??= require('./account-security').isDemoEmail(account.email);
     account.photoUrl ||= '';
@@ -147,6 +147,14 @@ async function migrate(db) {
       passwordHash: await hashPassword('Petserve123!'),
     });
   }
+  db.staffDirectory ??= db.users
+    .filter((user) => ['staff', 'admin'].includes(user.role) && !user.disabled)
+    .map((user) => ({
+      id: newId(),
+      name: user.name,
+      position: user.role === 'admin' ? 'Administrator' : 'Employee',
+    }));
+  require('./demo-payments').refreshPresentationCopy(db);
   for (const appointment of db.appointments) {
     const service = db.services.find((s) => s.id === appointment.serviceId);
     appointment.serviceName ||= service?.name || 'Service';

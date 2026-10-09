@@ -4,6 +4,7 @@ const { httpError } = require('./helpers');
 const { chatThreads } = require('./chat');
 const handlers = [
   require('./routes/accounts'),
+  require('./routes/staff'),
   require('./routes/account-security'),
   require('./routes/chat-deletion'),
   require('./routes/account-deletion'),
@@ -51,6 +52,7 @@ function createHandler(db, sessions, persist, uploadsDir) {
         const petIds = new Set(pets.map((p) => p.id));
         return send(res, 200, {
           user: user ? PUBLIC_USER(user) : null,
+          staffDirectory: user ? db.staffDirectory : [],
           services: db.services,
           timeSlots: db.schedule.timeSlots,
           schedule: user ? db.schedule : null,

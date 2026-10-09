@@ -12,7 +12,7 @@ The sign-in page's demo picker fills these accounts. All start with **Petserve12
 
 Use separate browsers or private windows for the customer and employee so you can show both sides together.
 
-1. **Payments immediately:** sign in as the customer and open **Payments & receipts**. Three sample receipts demonstrate Cash, GCash, and Maya. Open a receipt and show **Print / save PDF**. Sample entries are labeled **Demo visit**.
+1. **Payments immediately:** sign in as the customer and open **Payments & receipts**. Three sample receipts demonstrate Cash, GCash, and Maya. Open a receipt and show **Print / save PDF**. Entries use the normal visit and payment receipt labels.
 2. **Staff verification:** as the employee, open **Payments**, choose **Review transfer** for the pending Maya submission, confirm receipt, and save. Refresh the customer page to show the receipt appearing.
 3. **Customer online payment:** choose the unpaid grooming visit, open **Pay with GCash / Maya**, and enter a sample reference such as `DEMO-GROOMING-001`. Demonstration wallet details are fictional: **do not send real money**. Submit, then verify the transfer from the employee side.
 4. **Multiple pets, different services:** add a few pet profiles. In **Book a visit**, enable **Book multiple pets & services**. Select all pets, use the shared grooming card, then add deworming, vaccination, or consultation on individual checklists. Choose a future open day and an available arrival time. Show the service-time preview and send the request. The employee can confirm the linked services together from **Appointments**.
