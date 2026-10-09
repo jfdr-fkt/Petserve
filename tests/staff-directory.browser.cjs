@@ -126,6 +126,47 @@ const { createApp } = require('../server');
       );
       assert.equal(await page.locator('[data-action^=staff-]').count(), 0);
     }
+    const employee = initial.find((member) => member.position === 'Employee');
+    const boxes = await admin.evaluate(
+      ({ leadId, employeeId, vetId, assistantId }) => {
+        const box = (id) => {
+          const rect = document
+            .querySelector(`[data-staff-id="${id}"] > article`)
+            .getBoundingClientRect();
+          return {
+            center: rect.left + rect.width / 2,
+            top: rect.top,
+            bottom: rect.bottom,
+            width: rect.width,
+          };
+        };
+        return {
+          lead: box(leadId),
+          employee: box(employeeId),
+          vet: box(vetId),
+          assistant: box(assistantId),
+        };
+      },
+      { leadId: lead.id, employeeId: employee.id, vetId: created.id, assistantId: assistant.id },
+    );
+    assert.ok(
+      boxes.lead.bottom < boxes.vet.top && boxes.lead.bottom < boxes.employee.top,
+      'The root must be above its direct reports',
+    );
+    assert.ok(
+      Math.abs(boxes.employee.top - boxes.vet.top) < 2,
+      'Sibling staff must share a horizontal row',
+    );
+    assert.ok(
+      Math.abs(boxes.lead.center - (boxes.employee.center + boxes.vet.center) / 2) < 2,
+      'The root must be centered above its branches',
+    );
+    assert.ok(
+      boxes.vet.bottom < boxes.assistant.top &&
+        Math.abs(boxes.vet.center - boxes.assistant.center) < 2,
+      'A direct report must sit beneath their supervisor',
+    );
+    assert.ok(boxes.vet.width >= 250, 'Staff cards must keep a readable width');
     await admin.screenshot({
       path: path.join(artifacts, 'staff-list-desktop.png'),
       fullPage: true,
@@ -145,6 +186,38 @@ const { createApp } = require('../server');
         () => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
       ),
     );
+    const mobileRoot = await admin.evaluate(() => {
+      const chart = document.querySelector('.staff-hierarchy');
+      const root = chart
+        .querySelector('.staff-roots > .staff-node > article')
+        .getBoundingClientRect();
+      const viewport = chart.getBoundingClientRect();
+      return {
+        inside: root.left >= viewport.left && root.right <= viewport.right,
+        scrollable: chart.scrollWidth > chart.clientWidth,
+        scrollLeft: chart.scrollLeft,
+      };
+    });
+    assert.ok(
+      mobileRoot.inside && mobileRoot.scrollable,
+      'The root must stay visible while the phone chart can scroll sideways',
+    );
+    await admin.locator('.staff-hierarchy').focus();
+    await admin.keyboard.press('ArrowRight');
+    await admin.waitForFunction(
+      (previous) => document.querySelector('.staff-hierarchy').scrollLeft > previous,
+      mobileRoot.scrollLeft,
+    );
+    await admin.evaluate(() => window.dispatchEvent(new Event('resize')));
+    assert.ok(
+      await admin
+        .locator('.staff-hierarchy')
+        .evaluate((chart, previous) => chart.scrollLeft > previous, mobileRoot.scrollLeft),
+      'Resizing only the viewport height must preserve chart panning',
+    );
+    await admin
+      .locator('.staff-hierarchy')
+      .evaluate((chart, scrollLeft) => (chart.scrollLeft = scrollLeft), mobileRoot.scrollLeft);
     await admin.screenshot({ path: path.join(artifacts, 'staff-list-mobile.png'), fullPage: true });
     const updated = admin.locator('.staff-card').filter({ hasText: 'Carla <b>Santos</b>' });
     await updated.locator('[data-action=staff-remove]').click();
@@ -175,6 +248,24 @@ const { createApp } = require('../server');
     await customer.reload();
     assert.equal(await customer.locator('.staff-card').count(), 2);
 
+    assert.equal(
+      (
+        await admin.request.post(base + '/api/staff', {
+          data: { name: 'Jordan Reyes', position: 'Shop owner', reportsTo: '' },
+        })
+      ).status(),
+      201,
+    );
+    await customer.reload();
+    await customer.locator('.staff-company-card').waitFor();
+    assert.equal(await customer.locator('.staff-roots > .staff-node').count(), 1);
+    assert.equal(await customer.locator('.staff-company-card h2').textContent(), 'Petopia');
+    assert.equal(
+      await customer.locator('.staff-roots > .staff-node > .staff-reports > .staff-node').count(),
+      2,
+    );
+    assert.equal(await customer.locator('[data-action^=staff-]').count(), 0);
+
     for (const page of [customer, staff]) {
       for (const view of [
         'overview',
@@ -201,7 +292,7 @@ const { createApp } = require('../server');
     await checkCopy(customer);
     assert.deepEqual(errors, []);
     console.log(
-      'Staff directory and copy checks passed: reporting hierarchy, safe supervisor choices, team retained after removal, all roles can view, administrator-only edits, escaped names, mobile/dark layout, simplified headings and payment labels.',
+      'Staff organizational chart checks passed: centered root, horizontal branches and aligned rows, supervisor relationships, one root for multiple top-level entries, readable cards, mobile panning, administrator-only edits and copy checks.',
     );
   } finally {
     await browser.close();

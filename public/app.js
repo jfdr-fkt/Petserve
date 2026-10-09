@@ -4,7 +4,7 @@ import { shell, navigation } from './js/shell.js';
 import { auth } from './js/views/auth.js';
 import { overview } from './js/views/overview.js';
 import { pets } from './js/views/pets.js';
-import { staff } from './js/views/staff.js';
+import { staff, positionStaffChart } from './js/views/staff.js';
 import { booking, dateOptions, slotPicker } from './js/views/booking.js';
 import { appointments, payments } from './js/views/appointments.js';
 import { schedule, services, accounts, account, reports } from './js/views/clinic.js';
@@ -63,6 +63,7 @@ function render() {
   }
   if (!navigation().some(([view]) => view === state.view)) state.view = 'overview';
   ui.workspace(shell(views[state.view]()));
+  if (state.view === 'staff') positionStaffChart();
   if (!state.dialog) renderDialog();
 }
 function renderDialog(focus = false) {
@@ -1264,7 +1265,9 @@ window.addEventListener('resize', () => {
   if (state.mobileMenuOpen && window.innerWidth > 720) setMobileMenu(false);
   const sidebar = root.querySelector('.sidebar');
   if (sidebar) sidebar.inert = window.innerWidth <= 720 && !state.mobileMenuOpen;
+  positionStaffChart();
 });
+document.fonts.ready.then(positionStaffChart);
 state.view = views[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
 const recoveryRoute = /^#reset-password\/([a-f0-9]{64})$/.exec(location.hash);
 if (recoveryRoute) {
