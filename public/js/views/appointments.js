@@ -9,14 +9,16 @@ import {
   petAvatar,
   empty,
 } from '../components.js';
-import { escapeHTML as e, money, dateLabel, timeLabel } from '../utils.js';
+import { escapeHTML as e, money, dateLabel, timeLabel, todayManila } from '../utils.js';
+import { matchesAppointmentFilter } from '../appointment-filters.js';
 
 export function appointments() {
   const staff = isStaff(),
-    apps = state.data.appointments;
+    apps = state.data.appointments,
+    today = todayManila();
   const list = apps.filter(
     (a) =>
-      (state.filter === 'all' || a.status === state.filter) &&
+      matchesAppointmentFilter(a, state.filter, today) &&
       `${a.petName} ${a.customerName} ${a.serviceName}`
         .toLowerCase()
         .includes(state.search.toLowerCase()),
@@ -28,7 +30,7 @@ export function appointments() {
       ['Completed', apps.filter((a) => a.status === 'completed').length, 'check', 'lavender'],
       ['All visits', apps.length, 'queue', 'peach'],
     ],
-  )}<div class="list-toolbar"><div class="tabs filter-tabs">${['all', 'pending', 'confirmed', 'completed', 'cancelled', 'rejected'].map((status) => `<button type="button" data-filter="${status}" class="${state.filter === status ? 'active' : ''}">${status === 'all' ? 'All visits' : status[0].toUpperCase() + status.slice(1)}<span>${status === 'all' ? apps.length : apps.filter((a) => a.status === status).length}</span></button>`).join('')}</div><label class="search-field compact">${icon('search')}<input type="search" name="search" aria-label="Search appointments" value="${e(state.search)}" placeholder="Find a visit…"></label></div><div class="appointment-list">${list.length ? appointmentGroups(list, staff) : `<section class="panel">${empty('No appointments', state.search ? 'Try another name or service.' : staff ? 'New appointment requests will appear here.' : 'Book a visit to get started.', staff ? '' : viewButton('Book a visit', 'book', 'plus', 'soft'), 'calendar')}</section>`}</div>`;
+  )}<div class="list-toolbar"><div class="tabs filter-tabs">${['all', 'upcoming', 'pending', 'confirmed', 'completed', 'cancelled', 'rejected'].map((status) => `<button type="button" data-filter="${status}" class="${state.filter === status ? 'active' : ''}">${status === 'all' ? 'All visits' : status[0].toUpperCase() + status.slice(1)}<span>${apps.filter((a) => matchesAppointmentFilter(a, status, today)).length}</span></button>`).join('')}</div><label class="search-field compact">${icon('search')}<input type="search" name="search" aria-label="Search appointments" value="${e(state.search)}" placeholder="Find a visit…"></label></div><div class="appointment-list">${list.length ? appointmentGroups(list, staff) : `<section class="panel">${empty('No appointments', state.search ? 'Try another name or service.' : staff ? 'New appointment requests will appear here.' : 'Book a visit to get started.', staff ? '' : viewButton('Book a visit', 'book', 'plus', 'soft'), 'calendar')}</section>`}</div>`;
 }
 
 function appointmentGroups(list, staff) {

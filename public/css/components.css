@@ -146,6 +146,14 @@
   color: var(--muted);
   font-size: var(--text-sm);
 }
+.stat-link {
+  width: 100%;
+  text-align: left;
+}
+.stat-link:hover {
+  border-color: var(--selected-border);
+  background: var(--tint);
+}
 .stat-card strong {
   display: block;
   font-size: clamp(22px, 2vw, 29px);

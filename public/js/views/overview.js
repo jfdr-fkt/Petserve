@@ -10,6 +10,7 @@ import {
   empty,
 } from '../components.js';
 import { escapeHTML as e, money, dateLabel, todayManila } from '../utils.js';
+import { matchesAppointmentFilter } from '../appointment-filters.js';
 
 export function overview() {
   const staff = isStaff(),
@@ -17,7 +18,7 @@ export function overview() {
     today = todayManila();
   const pending = apps.filter((a) => a.status === 'pending');
   const upcoming = apps
-    .filter((a) => ['pending', 'confirmed'].includes(a.status) && a.date >= today)
+    .filter((a) => matchesAppointmentFilter(a, 'upcoming', today))
     .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
   const paid = apps.reduce((sum, a) => sum + (a.payment?.amount || 0), 0);
   const followups = state.data.healthLogs
@@ -33,21 +34,41 @@ export function overview() {
             apps.filter((a) => a.date === today && a.status === 'confirmed').length,
             'calendar',
             'sage',
+            { view: 'schedule', date: today },
           ],
-          ['Awaiting review', pending.length, 'queue', 'peach'],
-          ['Pet profiles', state.data.pets.length, 'pets', 'lavender'],
-          ['Collections', money(paid), 'card', 'sand'],
+          [
+            'Awaiting review',
+            pending.length,
+            'queue',
+            'peach',
+            { view: 'appointments', filter: 'pending' },
+          ],
+          ['Pet profiles', state.data.pets.length, 'pets', 'lavender', { view: 'pets' }],
+          ['Collections', money(paid), 'card', 'sand', { view: 'payments' }],
         ]
       : [
-          ['My pets', state.data.pets.length, 'pets', 'sage'],
-          ['Upcoming visits', upcoming.length, 'calendar', 'peach'],
+          ['My pets', state.data.pets.length, 'pets', 'sage', { view: 'pets' }],
+          [
+            'Upcoming visits',
+            upcoming.length,
+            'calendar',
+            'peach',
+            { view: 'appointments', filter: 'upcoming' },
+          ],
           [
             'Completed visits',
             apps.filter((a) => a.status === 'completed').length,
             'check',
             'lavender',
+            { view: 'appointments', filter: 'completed' },
           ],
-          ['Awaiting review', pending.length, 'clock', 'sand'],
+          [
+            'Awaiting review',
+            pending.length,
+            'clock',
+            'sand',
+            { view: 'appointments', filter: 'pending' },
+          ],
         ],
   )}
   <div class="dashboard-grid"><section class="panel"><div class="panel-header"><div><h2>${staff ? 'Next on the schedule' : 'Your upcoming visits'}</h2></div><button type="button" class="text-button" data-view="appointments">View all ${icon('arrow')}</button></div>${

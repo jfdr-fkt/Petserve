@@ -50,7 +50,15 @@ export const heading = (title, actions = '') =>
 export const empty = (title, description, action = '', glyph = 'pets') =>
   `<div class="empty-state"><span class="empty-icon">${icon(glyph)}</span><h3>${title}</h3>${description ? `<p>${description}</p>` : ''}${action}</div>`;
 export const stats = (items) =>
-  `<div class="stats-grid">${items.map(([label, value, glyph, tone = 'sage', hint = '']) => `<div class="stat-card"><div><span class="stat-label">${label}</span><strong>${value}</strong>${hint ? `<small>${hint}</small>` : ''}</div><span class="icon-tile ${tone}">${icon(glyph)}</span></div>`).join('')}</div>`;
+  `<div class="stats-grid">${items
+    .map(([label, value, glyph, tone = 'sage', destination]) => {
+      const tag = destination ? 'button' : 'div';
+      const attrs = destination
+        ? ` type="button" data-view="${e(destination.view)}"${destination.filter ? ` data-route-filter="${e(destination.filter)}"` : ''}${destination.date ? ` data-route-date="${e(destination.date)}"` : ''}`
+        : '';
+      return `<${tag} class="stat-card${destination ? ' stat-link' : ''}"${attrs}><div><span class="stat-label">${label}</span><strong>${value}</strong></div><span class="icon-tile ${tone}">${icon(glyph)}</span></${tag}>`;
+    })
+    .join('')}</div>`;
 export const field = (label, name, value = '', options = {}) => {
   const id = options.id || `field-${name}`;
   const attrs = `${options.required ? 'required' : ''} ${options.attrs || ''}`;

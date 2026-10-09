@@ -141,14 +141,15 @@ async function finishSession(deleted = false) {
   window.scrollTo(0, 0);
   root.querySelector('[name="email"]')?.focus({ preventScroll: true });
 }
-async function navigate(view) {
+async function navigate(view, { filter = 'all', date } = {}) {
   if (view !== 'account') state.accountPhoto = null;
   stopChat();
   setMobileMenu(false);
   closeDialog();
   state.view = view;
   state.search = '';
-  state.filter = 'all';
+  state.filter = filter;
+  if (view === 'schedule' && date) state.scheduleDate = date;
   state.notifications = false;
   history.replaceState(null, '', `#${view}`);
   if (view === 'book') {
@@ -241,7 +242,10 @@ async function handleClick(event) {
   if (!button || button.disabled) return;
   if (button.dataset.view) {
     event.preventDefault();
-    await navigate(button.dataset.view);
+    await navigate(button.dataset.view, {
+      filter: button.dataset.routeFilter,
+      date: button.dataset.routeDate,
+    });
     return;
   }
   if (button.dataset.authMode) {
