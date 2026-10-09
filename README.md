@@ -7,11 +7,13 @@ A local, integrated pet care prototype for **Petopia Pet Care Services, Tagum Ci
 Use Node.js 20 or newer. From this folder, install dependencies and start the app:
 
 ```sh
-npm install
+npm ci
 npm start
 ```
 
 Open **http://127.0.0.1:3000**. Startup builds the local React browser bundle automatically; `node server.js` also builds it before starting. Saved records, transfer submissions, wallet settings, and chat conversations live in `data/db.json`. Gallery files live in `data/uploads/`, private chat attachments in `data/uploads/chat/`, and private pet album files in `data/uploads/pets/`. An older database is migrated automatically without resetting its pets, bookings, or payments. Stop the server before copying both the database and uploads directory for a backup.
+
+For an existing checkout on another computer, run `git pull origin main` before these commands. A fresh checkout creates the starter accounts, pet profile, and presentation payment records automatically. Saved pets, staff listings, shifts, messages, and uploads from another computer are not stored in Git. To present the same saved content, stop both servers and copy the complete `data/` folder to the updated checkout before starting it. Keep `db.json` and its uploads together.
 
 To use another port in PowerShell:
 
@@ -63,7 +65,7 @@ For the presentation, normal startup adds five sample completed visits to the de
 4. Use **Record completed care** to enter service notes. For clinic payment, choose **Record payment**. To demonstrate online transfers, set the shop's wallet details in **Payments → Wallet settings**, return as the customer and submit a transaction reference, then verify receipt as the employee. Open the generated receipt and use **Print / save PDF**.
 5. Open **Petopia gallery** as the employee, upload a photo or video, add a caption, and confirm permission to share.
 6. Return as the customer to inspect the completed service and receipt, leave visit feedback, and browse the shared gallery. Staff can reply in **Customer feedback**.
-7. Sign in as the administrator. Use **Schedule** to test **Manage availability**, **Block time**, and **Reopen**. Use **Assign shift** to set employee hours, then sign in as that employee to view them. Review **Accounts** and **Reports**, apply a date range, and export the totals.
+7. Sign in as the administrator. In **Schedule → Staff shifts**, select an employee and month. Select dates or weekdays, apply working hours, rest days, leave, and reasons, then **Save month**. Return as the employee to view the assignments and notes. In **Clinic visits**, test the appointment calendar, **Block time**, and **Reopen**. **Manage availability** sets the shop's regular customer booking days and start times. Review **Accounts** and **Reports**, apply a date range, and export the totals.
 8. Try **Chat with Petopia** as a customer and **Customer messages** as staff in separate browsers or private windows. Open **My account** to test themes.
 
 ## Project structure

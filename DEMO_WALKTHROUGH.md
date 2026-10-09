@@ -1,8 +1,16 @@
 # PetServe presentation walkthrough
 
-Start with `npm start`, then open **http://127.0.0.1:3000**. In PowerShell, use `npm.cmd start` if script execution is restricted.
+Install Node.js 20 or newer. From the repository folder, run:
 
-The sign-in page's demo picker fills these accounts. All start with **Petserve123!**:
+```sh
+git pull origin main
+npm ci
+npm start
+```
+
+Then open **http://127.0.0.1:3000**. For a first download, clone `https://github.com/jfdr-fkt/Petserve.git` and enter the `Petserve` folder before running `npm ci` and `npm start`. In PowerShell, use `npm.cmd` if script execution is restricted.
+
+The sign-in page's **Quick sign in** picker fills these accounts. All start with **Petserve123!**:
 
 | Role          | Email               |
 | ------------- | ------------------- |
@@ -18,7 +26,10 @@ Use separate browsers or private windows for the customer and employee so you ca
 4. **Multiple pets, different services:** add a few pet profiles. In **Book a visit**, enable **Book multiple pets & services**. Select all pets, use the shared grooming card, then add deworming, vaccination, or consultation on individual checklists. Choose a future open day and an available arrival time. Show the service-time preview and send the request. The employee can confirm the linked services together from **Appointments**.
 5. **Profile and settings:** open **My account**, choose a photo, save it, and show the sidebar photo. Change the theme using the dropdown. Password change and account removal sit in the Security section. Use a disposable registered account when demonstrating deletion.
 6. **Chat:** send a message and a photo or video between the two windows. Delete a message, or use **Delete chat** as the customer to remove the entire conversation after confirming. Administrators can also delete conversations.
-7. **Forgot password:** sign out, choose **Forgot password?**, and enter a demo address. Open the link in the **Demo inbox**, set a new password, and sign in with it. Reset links work once and expire after twenty minutes. If you reset a demo account, its password changes; use the new one for the rest of the presentation.
+7. **Forgot password:** sign out, choose **Forgot password?**, and enter a demo address. Open the link in the **Password reset link** panel, set a new password, and sign in with it. Reset links work once and expire after twenty minutes. If you reset a demo account, its password changes; use the new one for the rest of the presentation.
 8. **Overview and administration:** click the **PetServe logo or name** to return to Overview. As the administrator, show account access, password recovery links, and schedule editing. Employees can view the schedule and their own shifts.
+9. **Monthly employee schedules:** as the administrator, open **Schedule → Staff shifts**, select an employee and a future month, and choose **All days**. Set working hours and a note, then **Apply to selected dates**. Select a recurring weekday to apply **Rest day** and its reason; select other dates for different hours or **Leave**. Preview the calendar, then **Save month** once. In the employee window, open **Schedule → My shifts** and the same month to show their assignments and reasons. Employees cannot edit them. **Clinic visits** shows the appointment calendar; **Manage availability** controls the shop's regular booking days and time slots.
 
 The sample payments load only once. Verification and profile changes remain saved between restarts; restarting signs everyone out. Keep the database and uploaded files together when backing up the demo.
+
+The repository includes the app, assets, dependency lockfile, and starter records. Your current saved pets, photos, gallery, chat messages, staff listings, wallet settings, and shifts stay in the local `data/` folder. For a presentation using those exact records, stop the app on both computers and copy the complete `data/` folder to your friend's updated checkout before starting it. A fresh checkout otherwise creates its own starter records. Passwords and account changes transfer with the database.
