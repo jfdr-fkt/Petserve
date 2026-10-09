@@ -1,8 +1,17 @@
 const { send, readBody, requireUser, requireJson } = require('../http');
-const { clean, httpError, validDate, manilaNow } = require('../helpers');
+const { httpError } = require('../helpers');
 const { newId } = require('../db');
+const { activeEmployee, assignment, shiftsConflict, applyMonthPlan } = require('../shift-plans');
 
 module.exports = async ({ req, res, pathname, db, user, persist }) => {
+  if (pathname === '/api/schedule/shifts/month' && req.method === 'POST') {
+    requireUser(user, 'admin');
+    requireJson(req);
+    const updated = applyMonthPlan(db, await readBody(req));
+    persist();
+    send(res, 200, { ok: true, updated });
+    return true;
+  }
   const match = /^\/api\/schedule\/shifts(?:\/([a-f0-9-]+))?$/.exec(pathname);
   if (!match) return false;
   requireUser(user, 'admin');
@@ -18,39 +27,10 @@ module.exports = async ({ req, res, pathname, db, user, persist }) => {
   if ((!id && req.method === 'POST') || (id && req.method === 'PATCH')) {
     requireJson(req);
     const data = await readBody(req);
-    const employee = db.users.find(
-      (item) => item.id === data.employeeId && item.role === 'staff' && !item.disabled,
-    );
-    if (!employee) throw httpError(400, 'Choose an active employee.');
-    if (typeof data.date !== 'string' || !validDate(data.date) || data.date < manilaNow().date)
-      throw httpError(400, 'Choose today or a future shift date.');
-    const time = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
-    if (
-      typeof data.start !== 'string' ||
-      typeof data.end !== 'string' ||
-      !time.test(data.start) ||
-      !time.test(data.end) ||
-      data.start >= data.end
-    )
-      throw httpError(400, 'Choose a same-day shift with an end time after its start.');
-    if (
-      db.shifts.some(
-        (item) =>
-          item.id !== id &&
-          item.employeeId === employee.id &&
-          item.date === data.date &&
-          item.start < data.end &&
-          data.start < item.end,
-      )
-    )
-      throw httpError(409, 'This employee already has an overlapping shift.');
-    const saved = {
-      employeeId: employee.id,
-      date: data.date,
-      start: data.start,
-      end: data.end,
-      notes: clean(data.notes, 200),
-    };
+    const employee = activeEmployee(db, data.employeeId);
+    const saved = { employeeId: employee.id, ...assignment(data) };
+    if (db.shifts.some((item) => item.id !== id && shiftsConflict(item, saved)))
+      throw httpError(409, 'This employee already has a conflicting assignment for this date.');
     if (shift) Object.assign(shift, saved);
     else db.shifts.push({ id: newId(), ...saved });
     persist();

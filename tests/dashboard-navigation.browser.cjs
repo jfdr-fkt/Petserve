@@ -164,12 +164,12 @@ const { manilaNow } = require('../src/helpers');
       await card(employee, 'Collections').click();
       await checkView(employee, 'payments', 'Payments');
       await employee.locator('.side-nav [data-view="schedule"]').click();
-      await employee.locator('#schedule-date').fill(dateOffset(1));
+      await employee.locator('[data-action="calendar-month"][data-offset="1"]').click();
       await overview(employee);
       await card(employee, 'Today\u2019s visits').click();
       await checkView(employee, 'schedule', 'Schedule');
       assert.equal(
-        await employee.locator('#schedule-date').inputValue(),
+        await employee.locator('.shift-panel').getAttribute('data-selected-date'),
         today,
         'Today card must reset an earlier schedule date selection',
       );

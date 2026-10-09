@@ -1,16 +1,17 @@
 export { account } from './account.js';
 import { shiftPanel } from '../shift-schedule.js';
+import { scheduleCalendar, scheduleContext } from '../schedule-calendar.js';
 import { state } from '../state.js';
 import { heading, field, icon, button, stats, statusBadge, empty } from '../components.js';
 import { escapeHTML as e, dateLabel, todayManila, timeLabel, money } from '../utils.js';
 
 export function schedule() {
-  const admin = state.data.user.role === 'admin';
+  const { admin, mode, employeeId } = scheduleContext();
   const date = state.scheduleDate || todayManila(),
     apps = state.data.appointments.filter(
       (a) => a.date === date && ['confirmed', 'pending', 'completed'].includes(a.status),
     );
-  return `${heading('Schedule', admin ? button('Manage availability', 'availability', 'settings', 'outline') : '')}${shiftPanel(date, admin)}<section class="panel schedule-panel"><div class="panel-header"><div><h2>${dateLabel(date)}</h2><p>${apps.filter((a) => a.status === 'confirmed').length} confirmed · ${apps.filter((a) => a.status === 'pending').length} awaiting review</p></div><div class="actions"><button type="button" class="btn btn-outline" data-action="schedule-today">Today</button><input type="date" id="schedule-date" value="${date}" aria-label="Schedule date"></div></div><div class="schedule-legend"><span><i class="legend-dot sage"></i>Grooming team</span><span><i class="legend-dot lavender"></i>Veterinary team</span><span>All times · Asia/Manila</span></div><div class="table-wrap"><table class="schedule-table"><thead><tr><th>Time</th><th>Grooming team</th><th>Veterinary team</th></tr></thead><tbody>${state.data.timeSlots
+  return `${heading('Schedule', admin ? button('Manage availability', 'availability', 'settings', 'outline') : '')}${scheduleCalendar()}${shiftPanel(date, admin, mode === 'shifts' ? employeeId : '')}<section class="panel schedule-panel" ${mode === 'visits' ? '' : 'hidden'}><div class="panel-header"><div><h2>${dateLabel(date)}</h2><p>${apps.filter((a) => a.status === 'confirmed').length} confirmed · ${apps.filter((a) => a.status === 'pending').length} awaiting review</p></div></div><div class="schedule-legend"><span><i class="legend-dot sage"></i>Grooming team</span><span><i class="legend-dot lavender"></i>Veterinary team</span><span>All times · Asia/Manila</span></div><div class="table-wrap"><table class="schedule-table"><thead><tr><th>Time</th><th>Grooming team</th><th>Veterinary team</th></tr></thead><tbody>${state.data.timeSlots
     .map(
       (time) =>
         `<tr><th>${timeLabel(time)}</th>${['groomer', 'veterinarian']
@@ -28,7 +29,7 @@ export function schedule() {
     )
     .join(
       '',
-    )}</tbody></table></div></section><section class="panel blocked-panel"><div class="panel-header"><div><h2>Blocked times</h2></div>${admin ? button('Block time', 'block-add', 'plus', 'soft') : ''}</div>${state.data.schedule.blocked.length ? state.data.schedule.blocked.map((b) => `<div class="payment-row"><div><strong>${b.resource === 'groomer' ? 'Grooming team' : 'Veterinary team'} · ${dateLabel(b.date)}</strong><small>${b.time ? timeLabel(b.time) : 'All day'}${b.reason ? ` · ${e(b.reason)}` : ''}</small></div>${admin ? button('Reopen', 'block-remove', '', 'outline', `data-id="${b.id}"`) : ''}</div>`).join('') : `<p class="panel-empty-note">${admin ? 'No blocked times. Add time off or a temporary closure here.' : 'No blocked times. Schedule changes are managed by your administrator.'}</p>`}</section>`;
+    )}</tbody></table></div></section><section class="panel blocked-panel" ${mode === 'visits' ? '' : 'hidden'}><div class="panel-header"><div><h2>Blocked times</h2></div>${admin ? button('Block time', 'block-add', 'plus', 'soft') : ''}</div>${state.data.schedule.blocked.length ? state.data.schedule.blocked.map((b) => `<div class="payment-row"><div><strong>${b.resource === 'groomer' ? 'Grooming team' : 'Veterinary team'} · ${dateLabel(b.date)}</strong><small>${b.time ? timeLabel(b.time) : 'All day'}${b.reason ? ` · ${e(b.reason)}` : ''}</small></div>${admin ? button('Reopen', 'block-remove', '', 'outline', `data-id="${b.id}"`) : ''}</div>`).join('') : `<p class="panel-empty-note">${admin ? 'No blocked times. Add time off or a temporary closure here.' : 'No blocked times. Schedule changes are managed by your administrator.'}</p>`}</section>`;
 }
 
 export function services() {

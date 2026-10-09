@@ -41,7 +41,7 @@ For the presentation, normal startup adds five sample completed visits to the de
 - **Health records:** vaccination, deworming, and health notes with record dates, optional clinic-provided follow-up dates, and source labels distinguishing owner information from clinic records. These are records, not diagnosis or treatment advice.
 - **Booking:** grooming, vaccination, deworming, and veterinary consultation; live availability, service prices, selected pets, visit notes, and a request summary. Enable **Book multiple pets & services** to select all pets or any combination, then check one or more services for each pet. Service cards above apply common care to every selected pet; each pet's checklist can be adjusted independently. Up to thirty pets can be included when their care fits the selected day. The customer chooses an arrival time and previews a complete plan using configured slots, care-team capacity, pet conflicts, blocked times, and closing time. All services are submitted together or none are saved. Grooming, vaccination, and deworming keep individual service appointments linked under one care request; consultations share a slot in groups of up to six pets, with per-pet pricing. Each service retains its booked price and per-pet history. The original single-service booking and shared-consultation workflow remains available. Slots use Asia/Manila time, up to 90 days ahead.
 - **Appointments:** requests, staff confirmation or decline, owner-facing staff messages, cancellation, owner/administrator rescheduling for renewed review, and completed care notes. Linked care requests appear together. Staff can confirm or decline all pending services in one action; every time is checked again before confirmation. Customers and staff can cancel remaining upcoming care while preserving completed services and payments. Individual service actions, records, feedback, and receipts remain available. Requests do not reserve a resource until confirmed. Confirmed bookings check overlapping durations for one grooming team and one veterinary team. A pet cannot have overlapping active requests.
-- **Clinic schedule:** employees can view daily care team visits and their own assigned shifts, including the next three upcoming shifts. Only administrators can assign, edit, or remove working hours, edit regular opening days/times, add or reopen resource-specific full-day or one-hour blocks, or reschedule visits on behalf of customers. Shifts support notes and reject overlapping hours for the same employee. Shift assignments are separate from clinic appointment capacity. Availability changes that conflict with confirmed visits are refused until those visits are rescheduled.
+- **Clinic schedule:** a monthly calendar with separate clinic-visit and employee-shift views, month/year selectors, today navigation, and keyboard access. Administrators select one employee and plan a whole month: select individual dates, all days, weekdays, or a recurring weekday; apply different working hours, rest days, leave, and employee-visible reasons to each selection; then save the month together. Changes preview before saving, drafts survive switching employees or months within the current session, and selected assignments can be cleared. Past dates remain viewable. The server validates the whole batch before saving and preserves untouched dates and other employees. Employees see only their own monthly assignments and upcoming shifts; their view refreshes when returning to the window and periodically while open. Only administrators edit shifts, regular clinic opening days/times, resource blocks, or reschedule visits for customers. Individual shift editing remains available. Shift assignments stay separate from clinic appointment capacity. Availability changes conflicting with confirmed visits require rescheduling first.
 - **Service management:** employees and administrators edit service names, descriptions, prices, and booking availability. Estimated duration is removed from service cards, appointment displays, summaries, and editing forms. Internal scheduling buffers continue to prevent overlapping resource bookings. Existing appointments retain their booked service name, unit price, combined price, scheduling buffer, and resource.
 - **Completed services:** a separate service record links each completed service to its appointment and pet. Customers see it in their appointments and their pet's history.
 - **Payments:** employees record clinic payments or verify customer online transfers after completing a visit. In **Payments → Wallet settings**, staff set the shop's GCash/Maya account name, mobile number, instructions, and enabled status. Normal startup prepares placeholder wallets and sample payment records without replacing configured shop details. Configure the shop’s verified wallet before taking actual transfers. For actual wallet details, customers transfer using their wallet app, then submit the amount and transaction reference. Submissions stay unpaid until staff checks receipt in the shop's wallet and verifies them. Rejected submissions carry a staff note and can be resubmitted. Pending transfers block duplicate/manual payments. Receipts print or save as PDF after verification or clinic payment recording.
@@ -82,6 +82,7 @@ src/
   media.js                    Upload validation, private media streaming and ranges
   routes.js                   Request dispatch and role-filtered bootstrap
   scheduling.js               Duration, opening-day, block, and conflict rules
+  shift-plans.js              Monthly assignment validation, atomic updates and conflicts
   visits.js                   Group-pet selection and visit membership
   chat.js                     Role-filtered thread summaries and unread counts
   care-plans.js               Per-pet service validation and complete daily care planning
@@ -98,7 +99,7 @@ src/
     appointments.js           Requests, transitions, rescheduling, services, payments
     care-plans.js             Atomic multi-service requests, availability and grouped review
     clinic.js                 Administrator availability, service menu, reports
-    shifts.js                 Administrator shift assignment and overlap validation
+    shifts.js                 Administrator single-shift and monthly planning routes
     community.js              Visit feedback, staff replies, authenticated gallery media
     transfers.js              Wallet settings, transfer submissions and verification
     chat.js                   Private conversation access, messages and read state
@@ -113,6 +114,10 @@ public/
     api.js                    API client and toast feedback
     state.js                  Central UI state and drafts
     utils.js                  Escaping, dates, amounts
+    calendar-dates.js          Month, weekday and assignment labels
+    schedule-calendar.js       Calendar rendering, navigation and keyboard access
+    shift-planner.js           Per-employee monthly drafts, bulk assignments and saving
+    schedule-updates.js        Live employee schedule refresh lifecycle
     icons.js                  Shared SVG icon definitions
     components.js             Shared forms, buttons, cards, receipts
     shell.js                  Role-aware navigation and notifications

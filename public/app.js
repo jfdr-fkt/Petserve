@@ -30,6 +30,13 @@ import { walletDetails } from './js/payment-dialogs.js';
 import { careItems, careSelectionError, planPreview } from './js/booking-plan.js';
 import { chooseProfilePhoto, removeProfilePhoto } from './js/profile.js';
 import { deleteConversation } from './js/chat.js';
+import {
+  handleScheduleClick,
+  handleScheduleChange,
+  handleCalendarKey,
+} from './js/schedule-calendar.js';
+import { handlePlanInput, handlePlanSubmit } from './js/shift-planner.js';
+import { startScheduleUpdates, stopScheduleUpdates } from './js/schedule-updates.js';
 import './js/experience.js';
 
 const root = document.querySelector('#app');
@@ -53,6 +60,7 @@ const views = {
 };
 let focusBeforeDialog = null;
 let slotRequest = 0;
+let navigationRequest = 0;
 
 function render() {
   if (!state.data) return;
@@ -104,7 +112,9 @@ async function refresh() {
   render();
 }
 async function finishSession(deleted = false) {
+  navigationRequest++;
   stopChat();
+  stopScheduleUpdates();
   clearChatAttachment();
   slotRequest++;
   setMobileMenu(false);
@@ -120,6 +130,10 @@ async function finishSession(deleted = false) {
     reportFrom: '',
     reportTo: '',
     scheduleDate: '',
+    scheduleMonth: '',
+    scheduleMode: '',
+    scheduleEmployeeId: '',
+    shiftPlans: {},
     selectedPet: '',
     search: '',
     filter: 'all',
@@ -142,14 +156,20 @@ async function finishSession(deleted = false) {
   root.querySelector('[name="email"]')?.focus({ preventScroll: true });
 }
 async function navigate(view, { filter = 'all', date } = {}) {
+  const request = ++navigationRequest;
   if (view !== 'account') state.accountPhoto = null;
   stopChat();
+  stopScheduleUpdates();
   setMobileMenu(false);
   closeDialog();
   state.view = view;
   state.search = '';
   state.filter = filter;
-  if (view === 'schedule' && date) state.scheduleDate = date;
+  if (view === 'schedule' && date) {
+    state.scheduleDate = date;
+    state.scheduleMonth = date.slice(0, 7);
+    state.scheduleMode = 'visits';
+  }
   state.notifications = false;
   history.replaceState(null, '', `#${view}`);
   if (view === 'book') {
@@ -158,10 +178,17 @@ async function navigate(view, { filter = 'all', date } = {}) {
     state.slotError = '';
     if (!state.booking.date) state.booking.date = dateOptions()[0] || '';
   }
+  if (view === 'schedule') {
+    const data = await api('/api/bootstrap');
+    if (request !== navigationRequest) return;
+    state.data = data;
+  }
   render();
   if (view === 'book') await loadSlots();
   if (view === 'reports') await loadReport();
+  if (request !== navigationRequest) return;
   if (view === 'chat') startChat();
+  if (view === 'schedule') startScheduleUpdates(render);
   document.querySelector('#main-content')?.focus({ preventScroll: true });
   window.scrollTo(0, 0);
 }
@@ -356,6 +383,7 @@ async function handleClick(event) {
     id = button.dataset.id;
   if (!action) return;
   try {
+    if (await handleScheduleClick(button, render, refresh)) return;
     if (
       [
         'availability',
@@ -617,7 +645,13 @@ async function handleClick(event) {
       return;
     }
     if (action === 'shift-add' || action === 'shift-edit') {
-      openDialog('shift', id, id ? state.data.shifts.find((shift) => shift.id === id) : {});
+      openDialog(
+        'shift',
+        id,
+        id
+          ? state.data.shifts.find((shift) => shift.id === id)
+          : { employeeId: state.scheduleEmployeeId },
+      );
       return;
     }
     if (action === 'shift-remove') {
@@ -683,6 +717,7 @@ modalRoot.addEventListener('click', handleClick);
 
 function handleInput(event) {
   const target = event.target;
+  if (handlePlanInput(target)) return;
   if (target.name === 'chatText') {
     state.chatDraft = target.value;
     return;
@@ -710,6 +745,13 @@ root.addEventListener('input', handleInput);
 modalRoot.addEventListener('input', handleInput);
 async function handleChange(event) {
   const target = event.target;
+  if (handleScheduleChange(target, render)) return;
+  if (target.name === 'kind' && state.dialog?.type === 'shift') {
+    state.draft = Object.fromEntries(new FormData(target.form).entries());
+    renderDialog();
+    document.getElementById('shift-kind')?.focus();
+    return;
+  }
   if (
     target.id === 'booking-multiple' ||
     target.id === 'booking-all-pets' ||
@@ -797,10 +839,6 @@ async function handleChange(event) {
     if (target.id === 'booking-date') render();
     await loadSlots();
   }
-  if (target.id === 'schedule-date') {
-    state.scheduleDate = target.value || todayManila();
-    render();
-  }
 }
 root.addEventListener('change', handleChange);
 modalRoot.addEventListener('change', handleChange);
@@ -836,6 +874,10 @@ async function handleSubmit(event) {
   const form = event.target.closest('form[data-form]');
   if (!form) return;
   event.preventDefault();
+  if (form.dataset.form === 'shift-plan') {
+    handlePlanSubmit(form, render);
+    return;
+  }
   const submit = form.querySelector('[type=submit]');
   if (submit.disabled) return;
   const values = Object.fromEntries(new FormData(form).entries()),
@@ -1177,6 +1219,7 @@ function exportReport() {
 }
 
 document.addEventListener('keydown', (event) => {
+  handleCalendarKey(event);
   if (
     event.target.id === 'chat-text' &&
     event.key === 'Enter' &&
@@ -1280,7 +1323,7 @@ if (recoveryRoute) {
 }
 refresh()
   .then(async () => {
-    if (state.data.user && ['book', 'reports', 'chat'].includes(state.view))
+    if (state.data.user && ['book', 'reports', 'chat', 'schedule'].includes(state.view))
       await navigate(state.view);
   })
   .catch(() => {
